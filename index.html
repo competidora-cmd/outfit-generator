@@ -2,7 +2,7 @@
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
         <title>FITTED</title>
         <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <style>
@@ -342,39 +342,42 @@
                 left: 0;
                 right: 0;
                 max-height: 90vh;
-                height: auto;
+                height: 90vh;
                 overflow-y: auto;
                 padding: 20px;
+                padding-bottom: 100px;
                 -webkit-overflow-scrolling: touch;
             }
 
-            @media (min-width: 769px) {
-                .modal-content {
-                    max-height: 90vh;
-                    height: auto;
-                }
-            }
-
-            .modal-header {
+            /* Form Actions - Fixed at bottom */
+            .form-actions {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #fff;
+                padding: 15px;
+                border-top: 1px solid #eee;
                 display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding: 0 10px;
+                justify-content: center;
+                z-index: 2001;
+                margin-bottom: env(safe-area-inset-bottom, 0px);
             }
 
-            .modal-header h2 {
-                font-size: 20px;
+            .upload-action-btn {
+                background: #000;
+                color: #fff;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 25px;
+                font-size: 16px;
                 font-weight: 600;
-            }
-
-            .close {
-                font-size: 24px;
                 cursor: pointer;
-                color: #666;
+                min-width: 200px;
+                -webkit-appearance: none;
             }
 
-            /* Update image preview styles */
+            /* Image Preview Styles */
             .image-preview {
                 width: 100%;
                 height: 300px;
@@ -393,73 +396,7 @@
                 -webkit-user-select: none;
                 user-select: none;
                 display: block;
-            }
-
-            .preview-actions {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                display: flex;
-                gap: 5px;
-                z-index: 10;
-            }
-
-            .preview-action-btn {
-                width: 36px;
-                height: 36px;
-                background: rgba(255, 255, 255, 0.9);
-                border: none;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                font-size: 18px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                -webkit-tap-highlight-color: transparent;
-            }
-
-            .preview-action-btn:active {
-                transform: scale(0.95);
-            }
-
-            /* Update upload area styles */
-            .upload-area {
-                width: 100%;
-                height: 300px;
-                border: 2px dashed #ccc;
-                border-radius: 15px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 20px;
-                background-color: #f8f8f8;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                -webkit-tap-highlight-color: transparent;
-            }
-
-            .upload-area:active,
-            .upload-area:hover {
-                border-color: #40b6ff;
-                background-color: #f0f7ff;
-            }
-
-            .upload-prompt {
-                text-align: center;
-                color: #666;
-            }
-
-            .upload-prompt span {
-                font-size: 18px;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 8px;
-            }
-
-            .upload-prompt p {
-                font-size: 14px;
-                color: #999;
+                background: #f5f5f5;
             }
 
             /* Form Styles */
@@ -468,359 +405,54 @@
                 flex-direction: column;
                 gap: 15px;
                 padding: 0 10px;
+                -webkit-overflow-scrolling: touch;
             }
 
             .form-item {
-                border-bottom: 1px solid #eee;
-                padding-bottom: 15px;
+                margin-bottom: 15px;
             }
 
             .form-item label {
                 display: block;
-                color: #666;
-                font-size: 14px;
                 margin-bottom: 8px;
-            }
-
-            .input-container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .input-container input {
-                border: none;
-                outline: none;
-                font-size: 16px;
-                width: 100%;
-                padding: 5px 0;
-                background: transparent;
-            }
-
-            .input-container .input-value {
                 color: #000;
                 font-weight: 500;
             }
 
-            /* Footer Styles */
-            footer {
-                background-color: #fff;
-                border-top: 1px solid #eee;
-                padding: 8px 20px;
-                position: fixed;
-                bottom: 20px;
-                left: 0;
-                right: 0;
-                z-index: 100;
-            }
-
-            .bottom-nav {
-                display: flex;
-                justify-content: space-around;
-                max-width: 400px;
-                margin: 0 auto;
-                background: #f5f5f5;
-                border-radius: 20px;
-                padding: 8px;
-            }
-
-            .bottom-nav .nav-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
-                cursor: pointer;
-                padding: 8px 24px;
-                border-radius: 16px;
-                transition: all 0.3s ease;
-            }
-
-            .bottom-nav .nav-item.active {
-                background: #fff;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-
-            .bottom-nav img {
-                width: 24px;
-                height: 24px;
-                margin-bottom: 2px;
-            }
-
-            .bottom-nav span {
-                font-size: 12px;
-                color: #666;
-                font-weight: 500;
-            }
-
-            .bottom-nav .nav-item.active span {
-                color: #000;
-            }
-
-            /* View Details Modal */
-            .details-modal {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.8);
-                z-index: 2000;
-            }
-
-            .details-content {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: #fff;
-                width: 90%;
-                max-width: 500px;
-                border-radius: 20px;
-                overflow: hidden;
-            }
-
-            .details-image {
+            .form-item input,
+            .form-item select {
                 width: 100%;
-                height: 300px;
-                position: relative;
-                background: #f5f5f5;
-            }
-
-            .details-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-
-            .details-info {
-                padding: 20px;
-            }
-
-            .details-row {
-                display: flex;
-                justify-content: space-between;
-                padding: 10px 0;
-                border-bottom: 1px solid #eee;
-            }
-
-            .details-label {
-                color: #666;
-                font-size: 14px;
-            }
-
-            .details-value {
-                font-weight: 500;
-            }
-
-            /* Upload Button */
-            .upload-button {
-                position: fixed;
-                bottom: 100px;
-                right: 20px;
-                background: #40b6ff;
-                color: #fff;
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                box-shadow: 0 4px 12px rgba(64, 182, 255, 0.4);
-                cursor: pointer;
-                z-index: 1000;
-            }
-
-            .upload-button:hover {
-                transform: scale(1.1);
-                box-shadow: 0 6px 16px rgba(64, 182, 255, 0.5);
-            }
-
-            /* Background Removal Tools */
-            .editor-tools {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-                padding: 10px;
-            }
-
-            .tool-group {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .brush-size {
-                width: 100%;
-                margin: 5px 0;
-            }
-
-            .color-picker {
-                width: 100%;
-                height: 40px;
-                padding: 5px;
-                border: none;
-                border-radius: 10px;
-                background: #f5f5f5;
-            }
-
-            /* Upload Button in Form */
-            .form-actions {
-                display: flex;
-                justify-content: center;
-                padding: 20px 0;
-                border-top: 1px solid #eee;
-                margin-top: 20px;
-            }
-
-            .upload-action-btn {
-                background: #000;
-                color: #fff;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 25px;
-                font-weight: 600;
-                cursor: pointer;
-                min-width: 120px;
-            }
-
-            .upload-action-btn:disabled {
-                background: #ccc;
-                cursor: not-allowed;
-            }
-
-            /* Selection styles */
-            .clothing-item.selectable {
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .clothing-item.selectable:hover {
-                transform: scale(1.05);
-            }
-            .clothing-item.selected {
-                border: 3px solid #40b6ff;
-                transform: scale(1.05);
-            }
-            .clothing-item.selected::after {
-                content: '✓';
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: #40b6ff;
-                color: white;
-                width: 24px;
-                height: 24px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-            }
-
-            /* Update profile styles for mobile */
-            .profile {
-                padding: 20px;
-                height: calc(100vh - 160px);
-                max-height: none;
-                margin-bottom: 80px;
-            }
-
-            .profile .container {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .profile-image {
-                width: 100%;
-                min-height: 200px;
-                margin-bottom: 10px;
-            }
-
-            .profile-info {
-                margin-top: 0;
-                padding: 0;
-            }
-
-            .profile-info h1 {
-                position: relative;
-                font-size: 2rem;
-                margin: 0.3rem;
-                top: auto;
-                left: auto;
-            }
-
-            h1.first-name {
-                margin-bottom: 5px;
-            }
-
-            h1.second-name {
-                color: #666;
-                font-size: 1.2rem;
-            }
-
-            .profile-stats {
-                margin-top: 30px;
-            }
-
-            .stat-item {
-                padding: 15px;
-            }
-
-            .stat-value {
-                font-size: 1.5rem;
-            }
-
-            @keyframes loadProfile {
-                from {
-                    transform: translateY(100px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0px);
-                    opacity: 1;
-                }
-            }
-
-            @keyframes loadProfileImage {
-                from {
-                    transform: translateY(50px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0px);
-                    opacity: 1;
-                }
-            }
-
-            @keyframes titleEffect {
-                from {
-                    opacity: 0;
-                    transform: translateX(-75px);
-                }
-                to {
-                    transform: translateX(0px);
-                    opacity: 1;
-                }
-            }
-
-            /* Add dropdown styles */
-            .dropdown-select {
-                width: 100%;
-                padding: 8px;
-                border: none;
+                padding: 12px;
+                border: 1px solid #ddd;
                 border-radius: 8px;
-                background-color: #f5f5f5;
                 font-size: 16px;
                 color: #000;
+                background: #fff;
                 -webkit-appearance: none;
-                -moz-appearance: none;
                 appearance: none;
-                background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-                background-repeat: no-repeat;
-                background-position: right 8px center;
-                background-size: 12px;
-                cursor: pointer;
+            }
+
+            .upload-prompt {
+                color: #000;
+                font-weight: 500;
+            }
+
+            .modal-header h2 {
+                color: #000;
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+            /* Profile Styles */
+            .profile-info h1 {
+                color: #000;
+                margin: 0;
+            }
+
+            .stat-value, 
+            .stat-label {
+                color: #000;
+                font-weight: 500;
             }
         </style>
     </head>
@@ -1342,487 +974,6 @@
                 });
             }
 
-            // Image handling functions
-            async function handleImage(file) {
-                if (!file || !file.type.startsWith('image/')) {
-                    alert('Please upload an image file');
-                    return;
-                }
-
-                try {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            // Calculate dimensions while maintaining aspect ratio
-                            let width = img.width;
-                            let height = img.height;
-                            const maxSize = 1200;
-
-                            if (width > maxSize || height > maxSize) {
-                                if (width > height) {
-                                    height = (height / width) * maxSize;
-                                    width = maxSize;
-                                } else {
-                                    width = (width / height) * maxSize;
-                                    height = maxSize;
-                                }
-                            }
-
-                            // Create canvas for resizing
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            canvas.width = width;
-                            canvas.height = height;
-
-                            // Draw white background
-                            ctx.fillStyle = '#FFFFFF';
-                            ctx.fillRect(0, 0, width, height);
-
-                            // Draw image
-                            ctx.drawImage(img, 0, 0, width, height);
-
-                            // Update preview
-                            const imagePreview = document.getElementById('imagePreview');
-                            const previewImg = imagePreview.querySelector('img');
-                            const uploadArea = document.getElementById('uploadArea');
-
-                            currentImageData = canvas.toDataURL('image/jpeg', 0.9);
-
-                            if (previewImg) {
-                                previewImg.onload = () => {
-                                    imagePreview.style.display = 'block';
-                                    uploadArea.style.display = 'none';
-                                    checkRequiredFields();
-                                };
-                                previewImg.src = currentImageData;
-                            }
-                        };
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                } catch (error) {
-                    console.error('Error processing image:', error);
-                    alert('Error processing image. Please try again.');
-                }
-            }
-
-            function showModal() {
-                const modal = document.getElementById('uploadModal');
-                const mainNav = document.querySelector('.main-nav');
-                const subNav = document.querySelector('.sub-nav');
-                const header = document.querySelector('header');
-                const uploadArea = document.getElementById('uploadArea');
-                const imageUpload = document.getElementById('imageUpload');
-
-                if (modal) {
-                    modal.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                    
-                    // Hide navigation elements
-                    if (mainNav) mainNav.style.display = 'none';
-                    if (subNav) subNav.style.display = 'none';
-                    if (header) header.style.paddingTop = '10px';
-                    
-                    resetForm();
-                    initializeUploadHandlers();
-
-                    // Setup image upload handlers
-                    if (uploadArea && imageUpload) {
-                        const setupImageUpload = () => {
-                            uploadArea.addEventListener('click', () => {
-                                imageUpload.click();
-                            });
-
-                            imageUpload.addEventListener('change', (e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    handleImage(e.target.files[0]);
-                                }
-                            }, { once: true });
-                        };
-
-                        setupImageUpload();
-                    }
-                }
-            }
-
-            function closeModal() {
-                const modal = document.getElementById('uploadModal');
-                const mainNav = document.querySelector('.main-nav');
-                const subNav = document.querySelector('.sub-nav');
-                const header = document.querySelector('header');
-
-                if (modal) {
-                    modal.style.display = 'none';
-                    document.body.style.overflow = '';
-
-                    // Restore navigation visibility
-                    if (mainNav) mainNav.style.display = 'flex';
-                    if (subNav) subNav.style.display = 'flex';
-                    if (header) header.style.paddingTop = '';
-                    
-                    resetForm();
-                }
-            }
-
-            // Form validation
-            function checkRequiredFields() {
-                const type = document.getElementById('type').value;
-                const category = document.getElementById('category').value;
-                const hasRequiredFields = type && category && currentImageData;
-                uploadItemBtn.disabled = !hasRequiredFields;
-            }
-
-            // Add input listeners for required fields
-            ['type', 'category'].forEach(fieldId => {
-                document.getElementById(fieldId).addEventListener('input', checkRequiredFields);
-            });
-
-            // Reset form function
-            function resetForm() {
-                currentImageData = null;
-                imagePreview.style.display = 'none';
-                uploadArea.style.display = 'block';
-                uploadItemBtn.disabled = true;
-                
-                // Reset all form inputs
-                document.querySelectorAll('.form-item input').forEach(input => {
-                    input.value = '';
-                });
-            }
-
-            // Save item function
-            async function saveItem() {
-                if (!currentImageData) {
-                    alert('Please upload an image');
-                    return;
-                }
-
-                const formData = new FormData();
-                
-                // Convert base64 image to blob
-                const base64Response = await fetch(currentImageData);
-                const blob = await base64Response.blob();
-                
-                // Add all form fields
-                formData.append('image', blob, 'image.png');
-                formData.append('user_id', userId.toString());
-                
-                const fields = {
-                    'price': document.getElementById('price').value,
-                    'type': document.getElementById('type').value,
-                    'layer_type': document.getElementById('layerType').value,
-                    'category': document.getElementById('category').value,
-                    'brand': document.getElementById('brand').value,
-                    'size': document.getElementById('size').value,
-                    'style': document.getElementById('style').value,
-                    'material': document.getElementById('material').value,
-                    'color': document.getElementById('color').value,
-                    'condition': document.getElementById('condition').value
-                };
-
-                // Add non-empty fields to formData
-                Object.entries(fields).forEach(([key, value]) => {
-                    if (value) {
-                        formData.append(key, value);
-                    }
-                });
-
-                try {
-                    const response = await fetch(`${API_URL}/items/`, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-                    }
-
-                    const item = await response.json();
-                    
-                    // Add item to grid
-                    const itemElement = document.createElement('div');
-                    itemElement.className = 'clothing-item';
-                    itemElement.dataset.id = item.id;
-                    itemElement.dataset.type = item.type;
-                    
-                    const img = document.createElement('img');
-                    img.src = item.image_url;
-                    img.alt = item.type;
-                    
-                    itemElement.appendChild(img);
-                    clothingGrid.appendChild(itemElement);
-
-                    // Reset form and close modal
-                    resetForm();
-                    modal.style.display = 'none';
-                    
-                    // Show success message
-                    alert('Item successfully saved!');
-                    
-                } catch (error) {
-                    console.error('Error saving item:', error);
-                    alert(`Failed to save item: ${error.message}`);
-                }
-            }
-
-            // Add save handler
-            uploadItemBtn.addEventListener('click', saveItem);
-
-            // Initialize with Pieces view
-            handleNavigation('Pieces');
-
-            // Update My Closet navigation handler
-            document.querySelector('.bottom-nav').addEventListener('click', (e) => {
-                const navItem = e.target.closest('.nav-item');
-                if (!navItem) return;
-
-                const itemText = navItem.querySelector('span').textContent;
-                
-                // Update active state for navigation items
-                document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-                    item.classList.toggle('active', item === navItem);
-                });
-
-                if (itemText === 'Profile') {
-                    showProfile();
-                } else if (itemText === 'My Closet') {
-                    // Reset main content first
-                    const main = document.querySelector('main');
-                    main.innerHTML = `
-                        <div class="grid-container">
-                            <div class="add-piece-card">
-                                <div class="add-icon">+</div>
-                                <div class="add-text">Add Piece</div>
-                                <div class="piece-count">10/10 Free pieces</div>
-                                <button class="upgrade-btn">Upgrade ⚡</button>
-                            </div>
-                            <div class="clothing-grid" id="clothingGrid"></div>
-                        </div>
-
-                        <!-- Upload Modal -->
-                        <div class="modal" id="uploadModal">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h2>Add New Piece</h2>
-                                    <span class="close">&times;</span>
-                                </div>
-                                <div class="upload-area" id="uploadArea">
-                                    <input type="file" id="imageUpload" accept="image/*" hidden>
-                                    <label for="imageUpload">
-                                        <div class="upload-prompt">
-                                            <span>Drop image here</span>
-                                            <p>or click to upload</p>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="image-preview" id="imagePreview">
-                                    <img src="" alt="Preview">
-                                    <div class="preview-actions">
-                                        <button class="preview-action-btn" id="editImageBtn">✏️</button>
-                                        <button class="preview-action-btn" id="removeImageBtn">🗑️</button>
-                                    </div>
-                                </div>
-                                <div class="item-details" id="itemDetails">
-                                    <div class="form-list">
-                                        <div class="form-item">
-                                            <label for="price">Price</label>
-                                            <div class="input-container">
-                                                <input type="text" id="price" name="price">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="type">Type</label>
-                                            <div class="input-container">
-                                                <select id="type" name="type" class="dropdown-select" onchange="checkRequiredFields()">
-                                                    <option value="">Select type</option>
-                                                    <option value="accessories">Accessories</option>
-                                                    <option value="pants">Pants</option>
-                                                    <option value="shoes">Shoes</option>
-                                                    <option value="tshirt">T-Shirt</option>
-                                                    <option value="sweater">Sweater</option>
-                                                    <option value="jacket">Jacket</option>
-                                                    <option value="hat">Hat</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="layerType">Layer Type</label>
-                                            <div class="input-container">
-                                                <input type="text" id="layerType" name="layerType">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="category">Category</label>
-                                            <div class="input-container">
-                                                <input type="text" id="category" name="category">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="brand">Brand</label>
-                                            <div class="input-container">
-                                                <input type="text" id="brand" name="brand">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="size">Size</label>
-                                            <div class="input-container">
-                                                <input type="text" id="size" name="size">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="style">Style</label>
-                                            <div class="input-container">
-                                                <input type="text" id="style" name="style">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="material">Material</label>
-                                            <div class="input-container">
-                                                <input type="text" id="material" name="material">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="color">Color</label>
-                                            <div class="input-container">
-                                                <input type="text" id="color" name="color">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                        <div class="form-item">
-                                            <label for="condition">Condition</label>
-                                            <div class="input-container">
-                                                <input type="text" id="condition" name="condition">
-                                                <span class="input-value"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-actions">
-                                    <button class="upload-action-btn" id="uploadItemBtn" disabled>Upload Item</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Create Outfit Button -->
-                        <button class="create-outfit-btn" id="createOutfitBtn" style="display: none;">
-                            Create Outfit
-                        </button>
-
-                        <!-- Add Upload Button -->
-                        <button class="upload-button" id="uploadBtn">+</button>
-                    `;
-
-                    // Reinitialize DOM elements after content reset
-                    const mainContent = document.querySelector('.grid-container');
-                    const mainNav = document.querySelector('.main-nav');
-                    const subNav = document.querySelector('.sub-nav');
-                    const uploadButton = document.querySelector('.upload-button');
-                    const clothingGrid = document.getElementById('clothingGrid');
-                    const addPieceCard = document.querySelector('.add-piece-card');
-                    const modal = document.getElementById('uploadModal');
-                    const closeBtn = modal.querySelector('.close');
-                    const uploadArea = document.getElementById('uploadArea');
-                    const imageUpload = document.getElementById('imageUpload');
-                    const imagePreview = document.getElementById('imagePreview');
-                    const uploadItemBtn = document.getElementById('uploadItemBtn');
-                    
-                    // Make sure all elements are visible
-                    mainContent.style.display = 'grid';
-                    mainNav.style.display = 'flex';
-                    subNav.style.display = 'flex';
-                    uploadButton.style.display = 'flex';
-
-                    // Reattach event listeners
-                    addPieceCard.addEventListener('click', () => {
-                        modal.style.display = 'block';
-                        resetForm();
-                    });
-
-                    uploadButton.addEventListener('click', () => {
-                        modal.style.display = 'block';
-                        resetForm();
-                    });
-
-                    closeBtn.addEventListener('click', () => {
-                        modal.style.display = 'none';
-                        resetForm();
-                    });
-
-                    // Add image upload handlers
-                    uploadArea.addEventListener('click', () => {
-                        imageUpload.click();
-                    });
-
-                    imageUpload.addEventListener('change', (e) => {
-                        if (e.target.files.length > 0) {
-                            handleImage(e.target.files[0]);
-                        }
-                    });
-
-                    uploadArea.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.add('dragover');
-                    });
-
-                    uploadArea.addEventListener('dragleave', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.remove('dragover');
-                    });
-
-                    uploadArea.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.remove('dragover');
-                        
-                        const files = e.dataTransfer.files;
-                        if (files.length > 0) {
-                            handleImage(files[0]);
-                        }
-                    });
-
-                    // Add preview action handlers
-                    document.getElementById('editImageBtn').addEventListener('click', () => {
-                        if (currentImageData) {
-                            initializeImageEditor(currentImageData);
-                        }
-                    });
-
-                    document.getElementById('removeImageBtn').addEventListener('click', () => {
-                        currentImageData = null;
-                        imagePreview.style.display = 'none';
-                        uploadArea.style.display = 'block';
-                        checkRequiredFields();
-                    });
-
-                    // Add form validation listeners
-                    ['type', 'category'].forEach(fieldId => {
-                        document.getElementById(fieldId).addEventListener('input', checkRequiredFields);
-                    });
-
-                    // Add save handler
-                    uploadItemBtn.addEventListener('click', saveItem);
-
-                    clothingGrid.addEventListener('click', (e) => {
-                        const item = e.target.closest('.clothing-item');
-                        if (item && isEditingMode) {
-                            toggleItemSelection(item);
-                        }
-                    });
-                    
-                    // Initialize the view and load items
-                    handleNavigation('Pieces');
-                    loadUserItems();
-                }
-            });
-
             // Profile display function
             async function showProfile() {
                 // Hide main content sections
@@ -1906,33 +1057,51 @@
                 const imageUpload = document.getElementById('imageUpload');
 
                 if (uploadArea && imageUpload) {
-                    uploadArea.addEventListener('click', () => {
-                        imageUpload.click();
+                    // Clean up old listeners
+                    const newUploadArea = uploadArea.cloneNode(true);
+                    const newImageUpload = imageUpload.cloneNode(true);
+                    uploadArea.parentNode.replaceChild(newUploadArea, uploadArea);
+                    imageUpload.parentNode.replaceChild(newImageUpload, imageUpload);
+
+                    // Add new listeners
+                    newUploadArea.addEventListener('click', () => {
+                        newImageUpload.click();
                     });
 
-                    uploadArea.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.add('dragover');
-                    });
-
-                    uploadArea.addEventListener('dragleave', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.remove('dragover');
-                    });
-
-                    uploadArea.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.remove('dragover');
-                        
-                        const files = e.dataTransfer.files;
-                        if (files.length > 0) {
-                            handleImage(files[0]);
+                    newImageUpload.addEventListener('change', async (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            try {
+                                await handleImage(e.target.files[0]);
+                            } catch (error) {
+                                console.error('Error handling image:', error);
+                                alert('Failed to process image. Please try again.');
+                            }
                         }
                     });
 
-                    imageUpload.addEventListener('change', (e) => {
-                        if (e.target.files.length > 0) {
-                            handleImage(e.target.files[0]);
+                    // Prevent default drag behaviors
+                    newUploadArea.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        newUploadArea.classList.add('dragover');
+                    });
+
+                    newUploadArea.addEventListener('dragleave', (e) => {
+                        e.preventDefault();
+                        newUploadArea.classList.remove('dragover');
+                    });
+
+                    newUploadArea.addEventListener('drop', async (e) => {
+                        e.preventDefault();
+                        newUploadArea.classList.remove('dragover');
+                        
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) {
+                            try {
+                                await handleImage(files[0]);
+                            } catch (error) {
+                                console.error('Error handling dropped image:', error);
+                                alert('Failed to process image. Please try again.');
+                            }
                         }
                     });
                 }
@@ -1946,6 +1115,51 @@
                 if (addPieceCard || uploadBtn) {
                     showModal();
                 }
+            });
+
+            // Add keyboard handling functions
+            function hideKeyboard() {
+                // Blur (unfocus) the active element to hide keyboard
+                if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                }
+            }
+
+            // Add event listeners for keyboard handling
+            document.addEventListener('DOMContentLoaded', () => {
+                // Handle Enter key press
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        hideKeyboard();
+                    }
+                });
+
+                // Handle touch outside of input fields
+                document.addEventListener('touchend', (e) => {
+                    const target = e.target;
+                    if (!(target instanceof HTMLInputElement) && 
+                        !(target instanceof HTMLSelectElement) && 
+                        !(target instanceof HTMLTextAreaElement)) {
+                        hideKeyboard();
+                    }
+                });
+
+                // Add blur event listeners to all form inputs
+                document.querySelectorAll('.form-item input, .form-item select').forEach(input => {
+                    // Handle Enter key for individual inputs
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            hideKeyboard();
+                        }
+                    });
+
+                    // Add done button to numeric inputs on iOS
+                    if (input.type === 'number' || input.type === 'tel') {
+                        input.setAttribute('pattern', '[0-9]*');
+                        input.setAttribute('inputmode', 'numeric');
+                    }
+                });
             });
         </script>
     </body>
