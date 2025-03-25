@@ -1537,6 +1537,125 @@
                             </div>
                             <div class="clothing-grid" id="clothingGrid"></div>
                         </div>
+
+                        <!-- Upload Modal -->
+                        <div class="modal" id="uploadModal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>Add New Piece</h2>
+                                    <span class="close">&times;</span>
+                                </div>
+                                <div class="upload-area" id="uploadArea">
+                                    <input type="file" id="imageUpload" accept="image/*" hidden>
+                                    <label for="imageUpload">
+                                        <div class="upload-prompt">
+                                            <span>Drop image here</span>
+                                            <p>or click to upload</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="image-preview" id="imagePreview">
+                                    <img src="" alt="Preview">
+                                    <div class="preview-actions">
+                                        <button class="preview-action-btn" id="editImageBtn">✏️</button>
+                                        <button class="preview-action-btn" id="removeImageBtn">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="item-details" id="itemDetails">
+                                    <div class="form-list">
+                                        <div class="form-item">
+                                            <label for="price">Price</label>
+                                            <div class="input-container">
+                                                <input type="text" id="price" name="price">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="type">Type</label>
+                                            <div class="input-container">
+                                                <select id="type" name="type" class="dropdown-select" onchange="checkRequiredFields()">
+                                                    <option value="">Select type</option>
+                                                    <option value="accessories">Accessories</option>
+                                                    <option value="pants">Pants</option>
+                                                    <option value="shoes">Shoes</option>
+                                                    <option value="tshirt">T-Shirt</option>
+                                                    <option value="sweater">Sweater</option>
+                                                    <option value="jacket">Jacket</option>
+                                                    <option value="hat">Hat</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="layerType">Layer Type</label>
+                                            <div class="input-container">
+                                                <input type="text" id="layerType" name="layerType">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="category">Category</label>
+                                            <div class="input-container">
+                                                <input type="text" id="category" name="category">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="brand">Brand</label>
+                                            <div class="input-container">
+                                                <input type="text" id="brand" name="brand">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="size">Size</label>
+                                            <div class="input-container">
+                                                <input type="text" id="size" name="size">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="style">Style</label>
+                                            <div class="input-container">
+                                                <input type="text" id="style" name="style">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="material">Material</label>
+                                            <div class="input-container">
+                                                <input type="text" id="material" name="material">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="color">Color</label>
+                                            <div class="input-container">
+                                                <input type="text" id="color" name="color">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                        <div class="form-item">
+                                            <label for="condition">Condition</label>
+                                            <div class="input-container">
+                                                <input type="text" id="condition" name="condition">
+                                                <span class="input-value"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="upload-action-btn" id="uploadItemBtn" disabled>Upload Item</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Outfit Button -->
+                        <button class="create-outfit-btn" id="createOutfitBtn" style="display: none;">
+                            Create Outfit
+                        </button>
+
+                        <!-- Add Upload Button -->
+                        <button class="upload-button" id="uploadBtn">+</button>
                     `;
 
                     // Reinitialize DOM elements after content reset
@@ -1546,6 +1665,12 @@
                     const uploadButton = document.querySelector('.upload-button');
                     const clothingGrid = document.getElementById('clothingGrid');
                     const addPieceCard = document.querySelector('.add-piece-card');
+                    const modal = document.getElementById('uploadModal');
+                    const closeBtn = modal.querySelector('.close');
+                    const uploadArea = document.getElementById('uploadArea');
+                    const imageUpload = document.getElementById('imageUpload');
+                    const imagePreview = document.getElementById('imagePreview');
+                    const uploadItemBtn = document.getElementById('uploadItemBtn');
                     
                     // Make sure all elements are visible
                     mainContent.style.display = 'grid';
@@ -1558,6 +1683,72 @@
                         modal.style.display = 'block';
                         resetForm();
                     });
+
+                    uploadButton.addEventListener('click', () => {
+                        modal.style.display = 'block';
+                        resetForm();
+                    });
+
+                    closeBtn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                        resetForm();
+                    });
+
+                    // Add image upload handlers
+                    uploadArea.addEventListener('click', () => {
+                        imageUpload.click();
+                    });
+
+                    imageUpload.addEventListener('change', (e) => {
+                        if (e.target.files.length > 0) {
+                            handleImage(e.target.files[0]);
+                        }
+                    });
+
+                    uploadArea.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        uploadArea.style.borderColor = '#000';
+                        uploadArea.style.backgroundColor = '#f0f0f0';
+                    });
+
+                    uploadArea.addEventListener('dragleave', (e) => {
+                        e.preventDefault();
+                        uploadArea.style.borderColor = '#ccc';
+                        uploadArea.style.backgroundColor = '#f8f8f8';
+                    });
+
+                    uploadArea.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        uploadArea.style.borderColor = '#ccc';
+                        uploadArea.style.backgroundColor = '#f8f8f8';
+                        
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) {
+                            handleImage(files[0]);
+                        }
+                    });
+
+                    // Add preview action handlers
+                    document.getElementById('editImageBtn').addEventListener('click', () => {
+                        if (currentImageData) {
+                            initializeImageEditor(currentImageData);
+                        }
+                    });
+
+                    document.getElementById('removeImageBtn').addEventListener('click', () => {
+                        currentImageData = null;
+                        imagePreview.style.display = 'none';
+                        uploadArea.style.display = 'block';
+                        checkRequiredFields();
+                    });
+
+                    // Add form validation listeners
+                    ['type', 'category'].forEach(fieldId => {
+                        document.getElementById(fieldId).addEventListener('input', checkRequiredFields);
+                    });
+
+                    // Add save handler
+                    uploadItemBtn.addEventListener('click', saveItem);
 
                     clothingGrid.addEventListener('click', (e) => {
                         const item = e.target.closest('.clothing-item');
