@@ -463,6 +463,110 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        /* View Details Modal */
+        .details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+        }
+
+        .details-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .details-image {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            background: #f5f5f5;
+        }
+
+        .details-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .details-info {
+            padding: 20px;
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .details-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .details-value {
+            font-weight: 500;
+        }
+
+        /* Upload Button */
+        .upload-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #000;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        /* Background Removal Tools */
+        .editor-tools {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .brush-size {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 40px;
+            padding: 5px;
+            border: none;
+            border-radius: 10px;
+            background: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -606,12 +710,21 @@
                 <div class="editor-content">
                     <canvas id="editorCanvas" class="editor-canvas"></canvas>
                     <div class="editor-tools">
-                        <button class="editor-btn" id="brushTool">Brush</button>
-                        <button class="editor-btn" id="eraserTool">Eraser</button>
-                        <button class="editor-btn" id="autoSelect">Auto Select</button>
-                        <button class="editor-btn secondary" id="undoBtn">Undo</button>
-                        <button class="editor-btn secondary" id="cancelEdit">Cancel</button>
-                        <button class="editor-btn" id="saveEdit">Save</button>
+                        <div class="tool-group">
+                            <button class="editor-btn" id="brushTool">Brush</button>
+                            <input type="range" class="brush-size" id="brushSize" min="1" max="50" value="20">
+                            <input type="color" class="color-picker" id="brushColor" value="#000000">
+                        </div>
+                        <div class="tool-group">
+                            <button class="editor-btn" id="eraserTool">Eraser</button>
+                            <button class="editor-btn" id="magicWandTool">Magic Wand</button>
+                            <button class="editor-btn" id="undoBtn">Undo</button>
+                        </div>
+                        <div class="tool-group">
+                            <button class="editor-btn" id="autoSelect">Auto Remove</button>
+                            <button class="editor-btn secondary" id="cancelEdit">Cancel</button>
+                            <button class="editor-btn" id="saveEdit">Save</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -620,6 +733,25 @@
             <button class="create-outfit-btn" id="createOutfitBtn" style="display: none;">
                 Create Outfit
             </button>
+
+            <!-- Add Upload Button -->
+            <button class="upload-button" id="uploadBtn">+</button>
+
+            <!-- Add View Details Modal -->
+            <div class="details-modal" id="detailsModal">
+                <div class="details-content">
+                    <div class="details-image">
+                        <img src="" alt="Item">
+                        <div class="item-actions">
+                            <button class="action-btn edit-details-btn">✏️</button>
+                            <button class="action-btn delete-item-btn">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="details-info">
+                        <!-- Details will be added dynamically -->
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer>
@@ -659,6 +791,11 @@
             const imagePreview = document.getElementById('imagePreview');
             const editImageBtn = document.getElementById('editImageBtn');
             const removeImageBtn = document.getElementById('removeImageBtn');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const detailsModal = document.getElementById('detailsModal');
+            const brushSizeInput = document.getElementById('brushSize');
+            const brushColorInput = document.getElementById('brushColor');
+            const magicWandTool = document.getElementById('magicWandTool');
             let isEditingMode = false;
             let selectedItems = new Set();
             let currentImageData = null;
@@ -671,6 +808,9 @@
             let tool = 'brush';
             let brushSize = 20;
             let undoStack = [];
+
+            // Update tool variables
+            let tolerance = 30; // Magic wand tolerance
 
             // Get user data from Telegram WebApp
             const userId = tg.initDataUnsafe?.user?.id;
@@ -952,6 +1092,8 @@
                 clothingItem.addEventListener('click', () => {
                     if (isEditingMode) {
                         toggleItemSelection(clothingItem);
+                    } else {
+                        showItemDetails(item);
                     }
                 });
                 
@@ -1142,14 +1284,37 @@
                 const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
                 const data = imageData.data;
                 
+                // Get background color from corners
+                const corners = [
+                    0, // Top-left
+                    (editorCanvas.width - 1) * 4, // Top-right
+                    (editorCanvas.width * (editorCanvas.height - 1)) * 4, // Bottom-left
+                    (editorCanvas.width * editorCanvas.height - 1) * 4 // Bottom-right
+                ];
+                
+                const bgColors = corners.map(i => ({
+                    r: data[i],
+                    g: data[i + 1],
+                    b: data[i + 2]
+                }));
+                
+                // Remove similar colors
                 for (let i = 0; i < data.length; i += 4) {
                     const r = data[i];
                     const g = data[i + 1];
                     const b = data[i + 2];
                     
-                    // Simple background detection
-                    if (r > 240 && g > 240 && b > 240) {
-                        data[i + 3] = 0; // Make white pixels transparent
+                    const isBackground = bgColors.some(bg => {
+                        const diff = Math.sqrt(
+                            Math.pow(r - bg.r, 2) +
+                            Math.pow(g - bg.g, 2) +
+                            Math.pow(b - bg.b, 2)
+                        );
+                        return diff < tolerance;
+                    });
+                    
+                    if (isBackground) {
+                        data[i + 3] = 0;
                     }
                 }
                 
@@ -1250,6 +1415,122 @@
                     console.error('Error creating outfit:', error);
                     alert('Failed to create outfit');
                 }
+            });
+
+            // Add upload button handler
+            uploadBtn.addEventListener('click', () => {
+                modal.style.display = 'block';
+                resetForm();
+            });
+
+            // Add view details handler
+            function showItemDetails(item) {
+                const detailsImg = detailsModal.querySelector('.details-image img');
+                const detailsInfo = detailsModal.querySelector('.details-info');
+                
+                detailsImg.src = item.image_url;
+                detailsInfo.innerHTML = '';
+                
+                const fields = {
+                    price: 'Price',
+                    type: 'Type',
+                    layer_type: 'Layer Type',
+                    category: 'Category',
+                    brand: 'Brand',
+                    size: 'Size',
+                    style: 'Style',
+                    material: 'Material',
+                    color: 'Color',
+                    condition: 'Condition'
+                };
+                
+                Object.entries(fields).forEach(([key, label]) => {
+                    if (item[key]) {
+                        const row = document.createElement('div');
+                        row.className = 'details-row';
+                        row.innerHTML = `
+                            <span class="details-label">${label}</span>
+                            <span class="details-value">${item[key]}</span>
+                        `;
+                        detailsInfo.appendChild(row);
+                    }
+                });
+                
+                detailsModal.style.display = 'block';
+                
+                // Add edit and delete handlers
+                const editBtn = detailsModal.querySelector('.edit-details-btn');
+                const deleteBtn = detailsModal.querySelector('.delete-item-btn');
+                
+                editBtn.onclick = () => {
+                    detailsModal.style.display = 'none';
+                    editItem(item);
+                };
+                
+                deleteBtn.onclick = () => {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        deleteItem(item.id);
+                        detailsModal.style.display = 'none';
+                    }
+                };
+            }
+
+            // Close details modal when clicking outside
+            detailsModal.addEventListener('click', (e) => {
+                if (e.target === detailsModal) {
+                    detailsModal.style.display = 'none';
+                }
+            });
+
+            // Update background removal tools
+            brushSizeInput.addEventListener('input', (e) => {
+                brushSize = parseInt(e.target.value);
+            });
+
+            brushColorInput.addEventListener('input', (e) => {
+                ctx.strokeStyle = e.target.value;
+            });
+
+            magicWandTool.addEventListener('click', () => {
+                tool = 'magicWand';
+            });
+
+            // Add magic wand functionality
+            editorCanvas.addEventListener('click', (e) => {
+                if (tool !== 'magicWand') return;
+                
+                const rect = editorCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
+                const pixels = imageData.data;
+                
+                // Get clicked pixel color
+                const index = (y * editorCanvas.width + x) * 4;
+                const targetR = pixels[index];
+                const targetG = pixels[index + 1];
+                const targetB = pixels[index + 2];
+                
+                // Find similar pixels
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    
+                    const diff = Math.sqrt(
+                        Math.pow(r - targetR, 2) +
+                        Math.pow(g - targetG, 2) +
+                        Math.pow(b - targetB, 2)
+                    );
+                    
+                    if (diff < tolerance) {
+                        pixels[i + 3] = 0; // Make transparent
+                    }
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+                saveCanvasState();
             });
         });
     </script>
