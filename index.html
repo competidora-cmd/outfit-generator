@@ -334,8 +334,7 @@
                 right: 0;
                 bottom: 0;
                 background-color: rgba(0,0,0,0.5);
-                z-index: 2000;
-                -webkit-overflow-scrolling: touch;
+                z-index: 3000;
             }
 
             .modal-content {
@@ -351,6 +350,7 @@
                 padding: 20px;
                 padding-bottom: 100px;
                 -webkit-overflow-scrolling: touch;
+                z-index: 3001;
             }
 
             /* Form Actions - Fixed at bottom */
@@ -364,7 +364,7 @@
                 border-top: 1px solid #eee;
                 display: flex;
                 justify-content: center;
-                z-index: 2001;
+                z-index: 3002;
                 padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
             }
 
@@ -474,6 +474,7 @@
                 padding: 15px;
                 border-top: 1px solid #eee;
                 z-index: 1000;
+                padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
             }
 
             .bottom-nav .nav-item {
@@ -516,7 +517,30 @@
                 justify-content: center;
                 cursor: pointer;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                z-index: 999;
+                z-index: 1001;
+            }
+
+            .upload-area {
+                width: 100%;
+                height: 200px;
+                border: 2px dashed #ccc;
+                border-radius: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                margin-bottom: 20px;
+                background: #f5f5f5;
+            }
+
+            .upload-area.dragover {
+                border-color: #000;
+                background: #f0f0f0;
+            }
+
+            .upload-prompt {
+                text-align: center;
+                color: #666;
             }
         </style>
     </head>
@@ -774,9 +798,9 @@
 
                 // Get elements
                 const subNav = document.querySelector('.sub-nav');
-                const gridContainer = document.querySelector('.grid-container');
                 const addPieceCard = document.querySelector('.add-piece-card');
-                const clothingGrid = document.querySelector('.clothing-grid');
+                const createOutfitBtn = document.getElementById('createOutfitBtn');
+                const uploadBtn = document.querySelector('.upload-button');
 
                 isEditingMode = section.toLowerCase() === 'fits';
                 
@@ -790,48 +814,54 @@
                 switch(section.toLowerCase()) {
                     case 'fits':
                         // Hide sub-navigation and add piece card
-                        subNav.style.display = 'none';
-                        addPieceCard.style.display = 'none';
+                        if (subNav) subNav.style.display = 'none';
+                        if (addPieceCard) addPieceCard.style.display = 'none';
+                        if (uploadBtn) uploadBtn.style.display = 'none';
                         
                         // Show create outfit button
-                        createOutfitBtn.style.display = 'block';
-                        createOutfitBtn.style.opacity = '0.5';
+                        if (createOutfitBtn) {
+                            createOutfitBtn.style.display = 'block';
+                            createOutfitBtn.style.opacity = '0.5';
+                        }
                         
                         // Enable selection mode for items
                         document.querySelectorAll('.clothing-item').forEach(item => {
                             item.classList.add('selectable');
                         });
 
-                        // Load and display items for outfit creation
                         loadUserItems();
                         break;
 
                     case 'pieces':
                         // Show sub-navigation and add piece card
-                        subNav.style.display = 'flex';
-                        addPieceCard.style.display = 'block';
+                        if (subNav) subNav.style.display = 'flex';
+                        if (addPieceCard) addPieceCard.style.display = 'block';
+                        if (uploadBtn) uploadBtn.style.display = 'flex';
                         
                         // Hide create outfit button
-                        createOutfitBtn.style.display = 'none';
+                        if (createOutfitBtn) {
+                            createOutfitBtn.style.display = 'none';
+                        }
                         
                         // Remove selection mode
                         document.querySelectorAll('.clothing-item').forEach(item => {
                             item.classList.remove('selectable');
                         });
 
-                        // Load and display user items
                         loadUserItems();
                         break;
 
                     case 'collections':
                         // Show sub-navigation
-                        subNav.style.display = 'flex';
-                        addPieceCard.style.display = 'none';
+                        if (subNav) subNav.style.display = 'flex';
+                        if (addPieceCard) addPieceCard.style.display = 'none';
+                        if (uploadBtn) uploadBtn.style.display = 'none';
                         
                         // Hide create outfit button
-                        createOutfitBtn.style.display = 'none';
+                        if (createOutfitBtn) {
+                            createOutfitBtn.style.display = 'none';
+                        }
                         
-                        // Load collections
                         loadUserCollections();
                         break;
                 }
@@ -853,19 +883,16 @@
 
             // Modal handling
             addPieceCard.addEventListener('click', () => {
-                modal.style.display = 'block';
-                resetForm();
+                showModal();
             });
 
             closeBtn.addEventListener('click', () => {
-                modal.style.display = 'none';
-                resetForm();
+                closeModal();
             });
 
             // Add click handlers
             uploadBtn.addEventListener('click', () => {
-                modal.style.display = 'block';
-                resetForm();
+                showModal();
             });
 
             // Add click handler for clothing items
@@ -1225,6 +1252,62 @@
                     }
                 });
             });
+
+            // Update showModal function
+            function showModal() {
+                const modal = document.getElementById('uploadModal');
+                const mainNav = document.querySelector('.main-nav');
+                const subNav = document.querySelector('.sub-nav');
+                const header = document.querySelector('header');
+                const uploadArea = document.getElementById('uploadArea');
+                const imagePreview = document.getElementById('imagePreview');
+
+                if (modal) {
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Hide navigation elements
+                    if (mainNav) mainNav.style.display = 'none';
+                    if (subNav) subNav.style.display = 'none';
+                    if (header) header.style.paddingTop = '10px';
+                    
+                    // Reset scroll position and show upload area
+                    const modalContent = modal.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.scrollTop = 0;
+                    }
+                    
+                    // Show upload area and hide preview
+                    if (uploadArea) {
+                        uploadArea.style.display = 'flex';
+                    }
+                    if (imagePreview) {
+                        imagePreview.style.display = 'none';
+                    }
+                    
+                    resetForm();
+                    initializeUploadHandlers();
+                }
+            }
+
+            // Update closeModal function
+            function closeModal() {
+                const modal = document.getElementById('uploadModal');
+                const mainNav = document.querySelector('.main-nav');
+                const subNav = document.querySelector('.sub-nav');
+                
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    
+                    // Restore navigation based on current section
+                    const currentSection = document.querySelector('.main-nav .nav-item.active').textContent;
+                    if (currentSection.toLowerCase() === 'pieces') {
+                        if (mainNav) mainNav.style.display = 'flex';
+                        if (subNav) subNav.style.display = 'flex';
+                    }
+                }
+            }
         </script>
     </body>
     </html> 
