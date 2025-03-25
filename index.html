@@ -648,72 +648,134 @@
                 font-size: 14px;
             }
 
-            /* Add these styles to the existing style section */
+            /* Update profile styles */
             .profile {
-                padding: 20px;
-                height: 100%;
+                animation: loadProfile 0.6s ease-in-out;
+                animation-fill-mode: both;
+                font-size: 0.9rem;
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                position: relative;
+                max-height: 750px;
+                max-width: 900px;
+                margin: 0 auto;
             }
 
-            .profile-header {
+            .profile-bg {
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                border-radius: 10px;
+                background: white;
+                box-shadow: 0 30px 50px -20px rgba(14, 0, 47, 0.21);
+                width: calc(100% - 75px);
+                height: calc(100% - 110px);
+                z-index: -1;
+            }
+
+            .profile .container {
                 display: flex;
-                align-items: center;
-                gap: 20px;
-            }
-
-            .profile-photo {
-                width: 100px;
-                height: 100px;
-                border-radius: 50%;
-                overflow: hidden;
-                background: #f5f5f5;
-            }
-
-            .profile-photo img {
+                flex-direction: row;
+                align-items: stretch;
                 width: 100%;
-                height: 100%;
-                object-fit: cover;
+            }
+
+            .profile-image {
+                animation: loadProfileImage 1s ease-in-out 0.5s;
+                animation-fill-mode: both;
+                position: relative;
+                border-radius: 10px;
+                width: 45%;
+                flex: none;
+                background-size: cover;
+                background-position: center;
+                min-height: 300px;
+                box-shadow: 0 25px 45px -20px rgba(0, 0, 0, 0.2);
             }
 
             .profile-info {
-                flex: 1;
+                margin-top: 120px;
+                padding: 8% 8% 2% 8%;
+                position: relative;
             }
 
-            .profile-name {
-                font-size: 24px;
-                font-weight: 600;
-                margin-bottom: 5px;
+            .profile-info h1 {
+                font-size: 3rem;
+                font-weight: 800;
+                margin: 0.7rem;
+                position: absolute;
+                animation-fill-mode: both;
             }
 
-            .profile-username {
-                color: #666;
-                margin-bottom: 15px;
+            h1.first-name {
+                animation: titleEffect 1s cubic-bezier(0,0.2,0.4,1);
+                top: -115px;
+                left: -85px;
+            }
+
+            h1.second-name {
+                animation: titleEffect 1s cubic-bezier(0,0,0.3,1);
+                top: -50px;
+                left: -45px;
             }
 
             .profile-stats {
+                margin-top: 100px;
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                margin-top: 20px;
+                gap: 20px;
             }
 
-            .stat-card {
-                background: #f5f5f5;
-                padding: 20px;
-                border-radius: 15px;
+            .stat-item {
                 text-align: center;
+                padding: 20px;
+                background: rgba(245, 245, 245, 0.9);
+                border-radius: 15px;
             }
 
             .stat-value {
-                font-size: 24px;
+                font-size: 2rem;
                 font-weight: 600;
+                color: #000;
                 margin-bottom: 5px;
             }
 
             .stat-label {
                 color: #666;
+                font-size: 0.9rem;
+            }
+
+            @keyframes loadProfile {
+                from {
+                    transform: translateY(100px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0px);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes loadProfileImage {
+                from {
+                    transform: translateY(50px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0px);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes titleEffect {
+                from {
+                    opacity: 0;
+                    transform: translateX(-75px);
+                }
+                to {
+                    transform: translateX(0px);
+                    opacity: 1;
+                }
             }
         </style>
     </head>
@@ -961,6 +1023,12 @@
                     btn.classList.toggle('active', btn.textContent === section);
                 });
 
+                // Get elements
+                const subNav = document.querySelector('.sub-nav');
+                const gridContainer = document.querySelector('.grid-container');
+                const addPieceCard = document.querySelector('.add-piece-card');
+                const clothingGrid = document.querySelector('.clothing-grid');
+
                 isEditingMode = section.toLowerCase() === 'fits';
                 
                 // Reset selection when switching modes
@@ -969,31 +1037,52 @@
                     item.classList.remove('selected');
                 });
 
-                // Update grid display and functionality
-                if (isEditingMode) {
-                    // Enable selection mode for items
-                    document.querySelectorAll('.clothing-item').forEach(item => {
-                        item.classList.add('selectable');
-                    });
-                    createOutfitBtn.style.display = 'block';
-                    createOutfitBtn.style.opacity = '0.5';
-                } else {
-                    // Remove selection mode
-                    document.querySelectorAll('.clothing-item').forEach(item => {
-                        item.classList.remove('selectable');
-                    });
-                    createOutfitBtn.style.display = 'none';
-                }
-
-                // Load appropriate content
+                // Handle different sections
                 switch(section.toLowerCase()) {
-                    case 'pieces':
+                    case 'fits':
+                        // Hide sub-navigation and add piece card
+                        subNav.style.display = 'none';
+                        addPieceCard.style.display = 'none';
+                        
+                        // Show create outfit button
+                        createOutfitBtn.style.display = 'block';
+                        createOutfitBtn.style.opacity = '0.5';
+                        
+                        // Enable selection mode for items
+                        document.querySelectorAll('.clothing-item').forEach(item => {
+                            item.classList.add('selectable');
+                        });
+
+                        // Load and display items for outfit creation
                         loadUserItems();
                         break;
-                    case 'fits':
-                        // Keep existing items but make them selectable
+
+                    case 'pieces':
+                        // Show sub-navigation and add piece card
+                        subNav.style.display = 'flex';
+                        addPieceCard.style.display = 'block';
+                        
+                        // Hide create outfit button
+                        createOutfitBtn.style.display = 'none';
+                        
+                        // Remove selection mode
+                        document.querySelectorAll('.clothing-item').forEach(item => {
+                            item.classList.remove('selectable');
+                        });
+
+                        // Load and display user items
+                        loadUserItems();
                         break;
+
                     case 'collections':
+                        // Show sub-navigation
+                        subNav.style.display = 'flex';
+                        addPieceCard.style.display = 'none';
+                        
+                        // Hide create outfit button
+                        createOutfitBtn.style.display = 'none';
+                        
+                        // Load collections
                         loadUserCollections();
                         break;
                 }
@@ -1108,7 +1197,29 @@
                         throw new Error('Failed to fetch items');
                     }
                     const items = await response.json();
-                    displayItems(items);
+                    
+                    // Clear existing items
+                    clothingGrid.innerHTML = '';
+                    
+                    // Display items differently based on mode
+                    if (isEditingMode) {
+                        // Display items in a grid layout for outfit creation
+                        items.forEach(item => {
+                            const itemElement = document.createElement('div');
+                            itemElement.className = 'clothing-item selectable';
+                            itemElement.dataset.id = item.id;
+                            
+                            const img = document.createElement('img');
+                            img.src = item.image_url;
+                            img.alt = item.type;
+                            
+                            itemElement.appendChild(img);
+                            clothingGrid.appendChild(itemElement);
+                        });
+                    } else {
+                        // Display items normally for pieces view
+                        displayItems(items);
+                    }
                 } catch (error) {
                     console.error('Error loading items:', error);
                 }
@@ -1369,30 +1480,25 @@
                 const main = document.querySelector('main');
                 main.innerHTML = `
                     <div class="profile">
-                        <div class="profile-header">
-                            <div class="profile-photo">
-                                ${userProfile.photoUrl ? 
-                                    `<img src="${userProfile.photoUrl}" alt="Profile">` :
-                                    `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f5f5f5;">
-                                        <span style="font-size: 40px; color: #666;">👤</span>
-                                    </div>`
-                                }
-                            </div>
-                            <div class="profile-info">
-                                <div class="profile-name">${userProfile.firstName || 'User'}</div>
-                                <div class="profile-username">@${userProfile.username}</div>
-                            </div>
-                        </div>
-                        <div class="profile-stats">
-                            <div class="stat-card">
-                                <div class="stat-value">${userProfile.itemsCount}</div>
-                                <div class="stat-label">Items</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${userProfile.outfitsCount}</div>
-                                <div class="stat-label">Outfits</div>
-                            </div>
-                        </div>
+                        <div class="profile-bg"></div>
+                        <section class="container">
+                            <aside class="profile-image" style="background-image: url('${userProfile.photoUrl || ''}')">
+                            </aside>
+                            <section class="profile-info">
+                                <h1 class="first-name">${userProfile.firstName || 'User'}</h1>
+                                <h1 class="second-name">@${userProfile.username}</h1>
+                                <div class="profile-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">${userProfile.itemsCount}</div>
+                                        <div class="stat-label">Items</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">${userProfile.outfitsCount}</div>
+                                        <div class="stat-label">Outfits</div>
+                                    </div>
+                                </div>
+                            </section>
+                        </section>
                     </div>
                 `;
 
@@ -1413,8 +1519,8 @@
                         // Update stats display
                         const statsSection = document.querySelector('.profile-stats');
                         if (statsSection) {
-                            statsSection.querySelector('.stat-card:first-child .stat-value').textContent = userProfile.itemsCount;
-                            statsSection.querySelector('.stat-card:last-child .stat-value').textContent = userProfile.outfitsCount;
+                            statsSection.querySelector('.stat-item:first-child .stat-value').textContent = userProfile.itemsCount;
+                            statsSection.querySelector('.stat-item:last-child .stat-value').textContent = userProfile.outfitsCount;
                         }
                     }
                 } catch (error) {
