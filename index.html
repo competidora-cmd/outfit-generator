@@ -1045,6 +1045,215 @@
                 });
             }
 
+            // Image handling functions
+            async function handleImage(file) {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload an image file');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = async () => {
+                        // Calculate dimensions while maintaining aspect ratio
+                        let width = img.width;
+                        let height = img.height;
+                        const maxSize = 800;
+
+                        if (width > maxSize || height > maxSize) {
+                            if (width > height) {
+                                height = (height / width) * maxSize;
+                                width = maxSize;
+                            } else {
+                                width = (width / height) * maxSize;
+                                height = maxSize;
+                            }
+                        }
+
+                        // Create canvas for resizing
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // Draw white background
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+                        
+                        // Draw image
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Show preview
+                        currentImageData = canvas.toDataURL('image/png');
+                        showImagePreview(currentImageData);
+                        checkRequiredFields();
+                        
+                        // Hide upload area
+                        uploadArea.style.display = 'none';
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function showImagePreview(imageData) {
+                previewImage.src = imageData;
+                imagePreview.style.display = 'block';
+            }
+
+            // Add image upload handlers
+            uploadArea.addEventListener('click', () => {
+                imageUpload.click();
+            });
+
+            imageUpload.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleImage(e.target.files[0]);
+                }
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#000';
+                uploadArea.style.backgroundColor = '#f0f0f0';
+            });
+
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = '#f8f8f8';
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = '#f8f8f8';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleImage(files[0]);
+                }
+            });
+
+            // Image preview actions
+            document.getElementById('editImageBtn').addEventListener('click', () => {
+                if (currentImageData) {
+                    initializeImageEditor(currentImageData);
+                }
+            });
+
+            document.getElementById('removeImageBtn').addEventListener('click', () => {
+                currentImageData = null;
+                imagePreview.style.display = 'none';
+                uploadArea.style.display = 'block';
+                checkRequiredFields();
+            });
+
+            // Form validation
+            function checkRequiredFields() {
+                const type = document.getElementById('type').value;
+                const category = document.getElementById('category').value;
+                const hasRequiredFields = type && category && currentImageData;
+                uploadItemBtn.disabled = !hasRequiredFields;
+            }
+
+            // Add input listeners for required fields
+            ['type', 'category'].forEach(fieldId => {
+                document.getElementById(fieldId).addEventListener('input', checkRequiredFields);
+            });
+
+            // Reset form function
+            function resetForm() {
+                currentImageData = null;
+                imagePreview.style.display = 'none';
+                uploadArea.style.display = 'block';
+                uploadItemBtn.disabled = true;
+                
+                // Reset all form inputs
+                document.querySelectorAll('.form-item input').forEach(input => {
+                    input.value = '';
+                });
+            }
+
+            // Save item function
+            async function saveItem() {
+                if (!currentImageData) {
+                    alert('Please upload an image');
+                    return;
+                }
+
+                const formData = new FormData();
+                
+                // Convert base64 image to blob
+                const base64Response = await fetch(currentImageData);
+                const blob = await base64Response.blob();
+                
+                // Add all form fields
+                formData.append('image', blob, 'image.png');
+                formData.append('user_id', userId.toString());
+                
+                const fields = {
+                    'price': document.getElementById('price').value,
+                    'type': document.getElementById('type').value,
+                    'layer_type': document.getElementById('layerType').value,
+                    'category': document.getElementById('category').value,
+                    'brand': document.getElementById('brand').value,
+                    'size': document.getElementById('size').value,
+                    'style': document.getElementById('style').value,
+                    'material': document.getElementById('material').value,
+                    'color': document.getElementById('color').value,
+                    'condition': document.getElementById('condition').value
+                };
+
+                // Add non-empty fields to formData
+                Object.entries(fields).forEach(([key, value]) => {
+                    if (value) {
+                        formData.append(key, value);
+                    }
+                });
+
+                try {
+                    const response = await fetch(`${API_URL}/items/`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                    }
+
+                    const item = await response.json();
+                    
+                    // Add item to grid
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'clothing-item';
+                    itemElement.dataset.id = item.id;
+                    
+                    const img = document.createElement('img');
+                    img.src = item.image_url;
+                    img.alt = item.type;
+                    
+                    itemElement.appendChild(img);
+                    clothingGrid.appendChild(itemElement);
+
+                    // Reset form and close modal
+                    resetForm();
+                    modal.style.display = 'none';
+                    
+                    // Show success message
+                    alert('Item successfully saved!');
+                    
+                } catch (error) {
+                    console.error('Error saving item:', error);
+                    alert(`Failed to save item: ${error.message}`);
+                }
+            }
+
+            // Add save handler
+            uploadItemBtn.addEventListener('click', saveItem);
+
             // Initialize with Pieces view
             handleNavigation('Pieces');
         </script>
