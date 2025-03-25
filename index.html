@@ -812,7 +812,7 @@
         tg.expand();
 
         // API configuration
-        const API_URL = 'http://localhost:8000'; // Update with your actual backend URL when deployed
+        const API_URL = 'http://localhost:8000';
 
         document.addEventListener('DOMContentLoaded', () => {
             const addPieceCard = document.querySelector('.add-piece-card');
@@ -843,14 +843,12 @@
             // Image editing variables
             let ctx = editorCanvas.getContext('2d');
             let isDrawing = false;
-            let lastX = 0;
-            let lastY = 0;
-            let tool = 'brush';
+            let drawingX = 0;
+            let drawingY = 0;
+            let tool = 'eraser'; // Set default tool to eraser
             let brushSize = 20;
             let undoStack = [];
-
-            // Update tool variables
-            let tolerance = 30; // Magic wand tolerance
+            let tolerance = 30;
 
             // Get user data from Telegram WebApp
             const userId = tg.initDataUnsafe?.user?.id;
@@ -1338,21 +1336,34 @@
 
             function startDrawing(e) {
                 isDrawing = true;
-                [lastX, lastY] = [e.offsetX, e.offsetY];
+                const rect = editorCanvas.getBoundingClientRect();
+                drawingX = e.clientX - rect.left;
+                drawingY = e.clientY - rect.top;
+                saveCanvasState();
             }
 
             function draw(e) {
                 if (!isDrawing) return;
                 
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.strokeStyle = tool === 'brush' ? '#000000' : '#ffffff';
-                ctx.lineWidth = brushSize;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                
-                [lastX, lastY] = [e.offsetX, e.offsetY];
+                const rect = editorCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if (tool === 'eraser') {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath();
+                    ctx.moveTo(drawingX, drawingY);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = 'rgba(0,0,0,1)';
+                    ctx.lineWidth = brushSize;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                } else if (tool === 'magicWand') {
+                    removeSimilarColors(x, y);
+                }
+
+                drawingX = x;
+                drawingY = y;
             }
 
             function stopDrawing() {
@@ -1363,8 +1374,15 @@
             }
 
             // Tool selection
-            document.getElementById('brushTool').onclick = () => tool = 'brush';
-            document.getElementById('eraserTool').onclick = () => tool = 'eraser';
+            document.getElementById('eraserTool').onclick = () => {
+                tool = 'eraser';
+                ctx.globalCompositeOperation = 'destination-out';
+            };
+
+            document.getElementById('magicWandTool').onclick = () => {
+                tool = 'magicWand';
+            };
+
             document.getElementById('undoBtn').onclick = undo;
             document.getElementById('cancelEdit').onclick = () => {
                 imageEditor.style.display = 'none';
@@ -1372,52 +1390,15 @@
             };
             document.getElementById('saveEdit').onclick = () => {
                 const imageData = editorCanvas.toDataURL('image/png');
-                saveItem(imageData);
+                currentImageData = imageData;
+                showImagePreview(imageData);
                 imageEditor.style.display = 'none';
                 undoStack = [];
             };
 
             // Auto select tool
             document.getElementById('autoSelect').onclick = () => {
-                const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
-                const data = imageData.data;
-                
-                // Get background color from corners
-                const corners = [
-                    0, // Top-left
-                    (editorCanvas.width - 1) * 4, // Top-right
-                    (editorCanvas.width * (editorCanvas.height - 1)) * 4, // Bottom-left
-                    (editorCanvas.width * editorCanvas.height - 1) * 4 // Bottom-right
-                ];
-                
-                const bgColors = corners.map(i => ({
-                    r: data[i],
-                    g: data[i + 1],
-                    b: data[i + 2]
-                }));
-                
-                // Remove similar colors
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    
-                    const isBackground = bgColors.some(bg => {
-                        const diff = Math.sqrt(
-                            Math.pow(r - bg.r, 2) +
-                            Math.pow(g - bg.g, 2) +
-                            Math.pow(b - bg.b, 2)
-                        );
-                        return diff < tolerance;
-                    });
-                    
-                    if (isBackground) {
-                        data[i + 3] = 0;
-                    }
-                }
-                
-                ctx.putImageData(imageData, 0, 0);
-                saveCanvasState();
+                removeBackground();
             };
 
             // Additional functions for loading outfits and collections
@@ -1589,10 +1570,6 @@
                 ctx.strokeStyle = e.target.value;
             });
 
-            magicWandTool.addEventListener('click', () => {
-                tool = 'magicWand';
-            });
-
             // Add magic wand functionality
             editorCanvas.addEventListener('click', (e) => {
                 if (tool !== 'magicWand') return;
@@ -1630,6 +1607,74 @@
                 ctx.putImageData(imageData, 0, 0);
                 saveCanvasState();
             });
+
+            function removeSimilarColors(x, y) {
+                const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
+                const data = imageData.data;
+                const index = (Math.floor(y) * editorCanvas.width + Math.floor(x)) * 4;
+                const targetR = data[index];
+                const targetG = data[index + 1];
+                const targetB = data[index + 2];
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+
+                    const diff = Math.sqrt(
+                        Math.pow(r - targetR, 2) +
+                        Math.pow(g - targetG, 2) +
+                        Math.pow(b - targetB, 2)
+                    );
+
+                    if (diff < tolerance) {
+                        data[i + 3] = 0;
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                saveCanvasState();
+            }
+
+            function removeBackground() {
+                const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
+                const data = imageData.data;
+                
+                const corners = [
+                    0,
+                    (editorCanvas.width - 1) * 4,
+                    (editorCanvas.width * (editorCanvas.height - 1)) * 4,
+                    (editorCanvas.width * editorCanvas.height - 1) * 4
+                ];
+                
+                const bgColors = corners.map(i => ({
+                    r: data[i],
+                    g: data[i + 1],
+                    b: data[i + 2]
+                }));
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+
+                    const isBackground = bgColors.some(bg => {
+                        const diff = Math.sqrt(
+                            Math.pow(r - bg.r, 2) +
+                            Math.pow(g - bg.g, 2) +
+                            Math.pow(b - bg.b, 2)
+                        );
+                        return diff < tolerance;
+                    });
+
+                    if (isBackground) {
+                        data[i + 3] = 0;
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                saveCanvasState();
+            }
         });
     </script>
 </body>
