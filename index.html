@@ -855,7 +855,7 @@
             const uploadArea = document.getElementById('uploadArea');
             const imageUpload = document.getElementById('imageUpload');
             const imagePreview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
+            const previewImage = imagePreview.querySelector('img');
             const uploadItemBtn = document.getElementById('uploadItemBtn');
             const clothingGrid = document.getElementById('clothingGrid');
             const createOutfitBtn = document.getElementById('createOutfitBtn');
@@ -867,6 +867,13 @@
             let isEditingMode = false;
             const selectedItems = new Set();
             const userId = tg.initDataUnsafe?.user?.id || 'default_user';
+            const userProfile = {
+                username: tg.initDataUnsafe?.user?.username || 'User',
+                firstName: tg.initDataUnsafe?.user?.first_name || '',
+                photoUrl: tg.initDataUnsafe?.user?.photo_url || '',
+                outfitsCount: 0,
+                itemsCount: 0
+            };
 
             // Navigation handling
             function handleNavigation(section) {
@@ -1055,7 +1062,6 @@
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     const img = new Image();
-                    img.src = e.target.result;
                     img.onload = async () => {
                         // Calculate dimensions while maintaining aspect ratio
                         let width = img.width;
@@ -1093,13 +1099,16 @@
                         // Hide upload area
                         uploadArea.style.display = 'none';
                     };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
 
             function showImagePreview(imageData) {
-                previewImage.src = imageData;
-                imagePreview.style.display = 'block';
+                if (previewImage) {
+                    previewImage.src = imageData;
+                    imagePreview.style.display = 'block';
+                }
             }
 
             // Add image upload handlers
@@ -1256,6 +1265,80 @@
 
             // Initialize with Pieces view
             handleNavigation('Pieces');
+
+            // Add profile navigation handler
+            document.querySelector('.bottom-nav').addEventListener('click', (e) => {
+                const profileItem = e.target.closest('.nav-item:not(.active)');
+                if (profileItem && profileItem.querySelector('span').textContent === 'Profile') {
+                    showProfile();
+                }
+            });
+
+            // Profile display function
+            async function showProfile() {
+                // Update navigation
+                document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+                    item.classList.toggle('active', item.querySelector('span').textContent === 'Profile');
+                });
+
+                // Hide main content sections
+                document.querySelector('.grid-container').style.display = 'none';
+                document.querySelector('.main-nav').style.display = 'none';
+                document.querySelector('.sub-nav').style.display = 'none';
+
+                // Create and show profile content
+                const main = document.querySelector('main');
+                main.innerHTML = `
+                    <div class="profile-container" style="padding: 20px; max-width: 600px; margin: 0 auto;">
+                        <div class="profile-header" style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+                            <div class="profile-photo" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; background: #f5f5f5;">
+                                ${userProfile.photoUrl ? 
+                                    `<img src="${userProfile.photoUrl}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                    `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #e0e0e0;">
+                                        <span style="font-size: 40px; color: #666;">👤</span>
+                                    </div>`
+                                }
+                            </div>
+                            <div class="profile-info">
+                                <h2 style="margin-bottom: 5px;">${userProfile.firstName}</h2>
+                                <p style="color: #666; margin-bottom: 10px;">@${userProfile.username}</p>
+                            </div>
+                        </div>
+                        <div class="profile-stats" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+                            <div class="stat-card" style="background: #f5f5f5; padding: 20px; border-radius: 15px; text-align: center;">
+                                <h3 style="font-size: 24px; margin-bottom: 5px;">${userProfile.itemsCount}</h3>
+                                <p style="color: #666;">Items</p>
+                            </div>
+                            <div class="stat-card" style="background: #f5f5f5; padding: 20px; border-radius: 15px; text-align: center;">
+                                <h3 style="font-size: 24px; margin-bottom: 5px;">${userProfile.outfitsCount}</h3>
+                                <p style="color: #666;">Outfits</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Update stats
+                try {
+                    const [itemsResponse, outfitsResponse] = await Promise.all([
+                        fetch(`${API_URL}/items/?user_id=${userId}`),
+                        fetch(`${API_URL}/outfits/?user_id=${userId}`)
+                    ]);
+
+                    if (itemsResponse.ok && outfitsResponse.ok) {
+                        const items = await itemsResponse.json();
+                        const outfits = await outfitsResponse.json();
+                        
+                        userProfile.itemsCount = items.length;
+                        userProfile.outfitsCount = outfits.length;
+                        
+                        // Update stats display
+                        document.querySelector('.stat-card:first-child h3').textContent = userProfile.itemsCount;
+                        document.querySelector('.stat-card:last-child h3').textContent = userProfile.outfitsCount;
+                    }
+                } catch (error) {
+                    console.error('Error fetching profile stats:', error);
+                }
+            }
         </script>
     </body>
     </html> 
