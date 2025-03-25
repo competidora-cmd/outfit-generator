@@ -557,9 +557,9 @@
             /* Upload Button */
             .upload-button {
                 position: fixed;
-                bottom: 20px;
+                bottom: 80px;
                 right: 20px;
-                background: #000;
+                background: #40b6ff;
                 color: #fff;
                 width: 60px;
                 height: 60px;
@@ -568,9 +568,14 @@
                 align-items: center;
                 justify-content: center;
                 font-size: 24px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                box-shadow: 0 4px 12px rgba(64, 182, 255, 0.4);
                 cursor: pointer;
                 z-index: 100;
+            }
+
+            .upload-button:hover {
+                transform: scale(1.1);
+                box-shadow: 0 6px 16px rgba(64, 182, 255, 0.5);
             }
 
             /* Background Removal Tools */
@@ -1511,21 +1516,18 @@
                     document.querySelector('.grid-container').style.display = 'grid';
                     document.querySelector('.main-nav').style.display = 'flex';
                     document.querySelector('.sub-nav').style.display = 'flex';
+                    document.querySelector('.upload-button').style.display = 'flex';
                     handleNavigation('Pieces');
                 }
             });
 
             // Profile display function
             async function showProfile() {
-                // Update navigation
-                document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-                    item.classList.toggle('active', item.querySelector('span').textContent === 'Profile');
-                });
-
                 // Hide main content sections
                 document.querySelector('.grid-container').style.display = 'none';
                 document.querySelector('.main-nav').style.display = 'none';
                 document.querySelector('.sub-nav').style.display = 'none';
+                document.querySelector('.upload-button').style.display = 'none';
 
                 // Create and show profile content
                 const main = document.querySelector('main');
