@@ -421,31 +421,37 @@
             footer {
                 background-color: #fff;
                 border-top: 1px solid #eee;
-                padding: 10px 20px;
-                position: sticky;
+                padding: 8px 20px;
+                position: fixed;
                 bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 100;
             }
 
             .bottom-nav {
                 display: flex;
                 justify-content: space-around;
+                max-width: 400px;
+                margin: 0 auto;
             }
 
             .bottom-nav .nav-item {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 5px;
+                gap: 2px;
                 cursor: pointer;
+                padding: 4px 0;
             }
 
             .bottom-nav img {
-                width: 24px;
-                height: 24px;
+                width: 20px;
+                height: 20px;
             }
 
             .bottom-nav span {
-                font-size: 12px;
+                font-size: 11px;
                 color: #666;
             }
 
@@ -648,101 +654,57 @@
                 font-size: 14px;
             }
 
-            /* Update profile styles */
+            /* Update profile styles for mobile */
             .profile {
-                animation: loadProfile 0.6s ease-in-out;
-                animation-fill-mode: both;
-                font-size: 0.9rem;
-                display: flex;
-                flex-direction: column;
-                position: relative;
-                max-height: 750px;
-                max-width: 900px;
-                margin: 0 auto;
-            }
-
-            .profile-bg {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                border-radius: 10px;
-                background: white;
-                box-shadow: 0 30px 50px -20px rgba(14, 0, 47, 0.21);
-                width: calc(100% - 75px);
-                height: calc(100% - 110px);
-                z-index: -1;
+                padding: 20px;
+                height: calc(100vh - 120px);
+                max-height: none;
+                margin-bottom: 60px;
             }
 
             .profile .container {
-                display: flex;
-                flex-direction: row;
-                align-items: stretch;
-                width: 100%;
-            }
-
-            .profile-image {
-                animation: loadProfileImage 1s ease-in-out 0.5s;
-                animation-fill-mode: both;
-                position: relative;
-                border-radius: 10px;
-                width: 45%;
-                flex: none;
-                background-size: cover;
-                background-position: center;
-                min-height: 300px;
-                box-shadow: 0 25px 45px -20px rgba(0, 0, 0, 0.2);
-            }
-
-            .profile-info {
-                margin-top: 120px;
-                padding: 8% 8% 2% 8%;
-                position: relative;
-            }
-
-            .profile-info h1 {
-                font-size: 3rem;
-                font-weight: 800;
-                margin: 0.7rem;
-                position: absolute;
-                animation-fill-mode: both;
-            }
-
-            h1.first-name {
-                animation: titleEffect 1s cubic-bezier(0,0.2,0.4,1);
-                top: -115px;
-                left: -85px;
-            }
-
-            h1.second-name {
-                animation: titleEffect 1s cubic-bezier(0,0,0.3,1);
-                top: -50px;
-                left: -45px;
-            }
-
-            .profile-stats {
-                margin-top: 100px;
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
+                flex-direction: column;
                 gap: 20px;
             }
 
-            .stat-item {
-                text-align: center;
-                padding: 20px;
-                background: rgba(245, 245, 245, 0.9);
-                border-radius: 15px;
+            .profile-image {
+                width: 100%;
+                min-height: 200px;
+                margin-bottom: 10px;
             }
 
-            .stat-value {
+            .profile-info {
+                margin-top: 0;
+                padding: 0;
+            }
+
+            .profile-info h1 {
+                position: relative;
                 font-size: 2rem;
-                font-weight: 600;
-                color: #000;
+                margin: 0.3rem;
+                top: auto;
+                left: auto;
+            }
+
+            h1.first-name {
                 margin-bottom: 5px;
             }
 
-            .stat-label {
+            h1.second-name {
                 color: #666;
-                font-size: 0.9rem;
+                font-size: 1.2rem;
+            }
+
+            .profile-stats {
+                margin-top: 30px;
+            }
+
+            .stat-item {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
             }
 
             @keyframes loadProfile {
@@ -776,6 +738,25 @@
                     transform: translateX(0px);
                     opacity: 1;
                 }
+            }
+
+            /* Add dropdown styles */
+            .dropdown-select {
+                width: 100%;
+                padding: 8px;
+                border: none;
+                border-radius: 8px;
+                background-color: #f5f5f5;
+                font-size: 16px;
+                color: #000;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+                background-repeat: no-repeat;
+                background-position: right 8px center;
+                background-size: 12px;
+                cursor: pointer;
             }
         </style>
     </head>
@@ -850,8 +831,16 @@
                                 <div class="form-item">
                                     <label for="type">Type</label>
                                     <div class="input-container">
-                                        <input type="text" id="type" name="type">
-                                        <span class="input-value"></span>
+                                        <select id="type" name="type" class="dropdown-select" onchange="checkRequiredFields()">
+                                            <option value="">Select type</option>
+                                            <option value="accessories">Accessories</option>
+                                            <option value="pants">Pants</option>
+                                            <option value="shoes">Shoes</option>
+                                            <option value="tshirt">T-Shirt</option>
+                                            <option value="sweater">Sweater</option>
+                                            <option value="jacket">Jacket</option>
+                                            <option value="hat">Hat</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="form-item">
@@ -1152,32 +1141,79 @@
 
             // Create outfit button handler
             createOutfitBtn.addEventListener('click', async () => {
-                if (selectedItems.size < 2) {
-                    alert('Please select at least 2 items to create an outfit');
-                    return;
-                }
-                
                 try {
-                    const response = await fetch(`${API_URL}/outfits/`, {
+                    // Get all items
+                    const response = await fetch(`${API_URL}/items/?user_id=${userId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch items');
+                    }
+                    const items = await response.json();
+
+                    // Group items by type
+                    const itemsByType = {
+                        accessories: [],
+                        pants: [],
+                        shoes: [],
+                        tshirt: [],
+                        sweater: [],
+                        jacket: [],
+                        hat: []
+                    };
+
+                    items.forEach(item => {
+                        if (itemsByType.hasOwnProperty(item.type)) {
+                            itemsByType[item.type].push(item);
+                        }
+                    });
+
+                    // Select one item of each type randomly
+                    const selectedItems = [];
+                    
+                    // Essential items (will always try to include these)
+                    const essentialTypes = ['pants', 'shoes', 'tshirt'];
+                    essentialTypes.forEach(type => {
+                        if (itemsByType[type].length > 0) {
+                            const randomItem = itemsByType[type][Math.floor(Math.random() * itemsByType[type].length)];
+                            selectedItems.push(randomItem.id);
+                        }
+                    });
+
+                    // Optional items (will include if available)
+                    const optionalTypes = ['jacket', 'hat', 'accessories'];
+                    optionalTypes.forEach(type => {
+                        if (itemsByType[type].length > 0 && Math.random() > 0.5) { // 50% chance to include optional items
+                            const randomItem = itemsByType[type][Math.floor(Math.random() * itemsByType[type].length)];
+                            selectedItems.push(randomItem.id);
+                        }
+                    });
+
+                    // Check if we have enough items for an outfit
+                    if (selectedItems.length < 2) {
+                        alert('Not enough items to create a complete outfit. Please add more items.');
+                        return;
+                    }
+
+                    // Create the outfit
+                    const outfitResponse = await fetch(`${API_URL}/outfits/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
                             user_id: userId,
-                            item_ids: Array.from(selectedItems)
+                            item_ids: selectedItems
                         })
                     });
 
-                    if (!response.ok) {
+                    if (!outfitResponse.ok) {
                         throw new Error('Failed to create outfit');
                     }
 
-                    const outfit = await response.json();
+                    const outfit = await outfitResponse.json();
                     alert('Outfit created successfully!');
                     
                     // Clear selection and refresh view
-                    selectedItems.clear();
+                    selectedItems.length = 0;
                     document.querySelectorAll('.clothing-item').forEach(item => {
                         item.classList.remove('selected');
                     });
@@ -1429,6 +1465,7 @@
                     const itemElement = document.createElement('div');
                     itemElement.className = 'clothing-item';
                     itemElement.dataset.id = item.id;
+                    itemElement.dataset.type = item.type;
                     
                     const img = document.createElement('img');
                     img.src = item.image_url;
@@ -1458,9 +1495,23 @@
 
             // Add profile navigation handler
             document.querySelector('.bottom-nav').addEventListener('click', (e) => {
-                const profileItem = e.target.closest('.nav-item:not(.active)');
-                if (profileItem && profileItem.querySelector('span').textContent === 'Profile') {
+                const navItem = e.target.closest('.nav-item');
+                if (!navItem) return;
+
+                const itemText = navItem.querySelector('span').textContent;
+                
+                document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+                    item.classList.toggle('active', item === navItem);
+                });
+
+                if (itemText === 'Profile') {
                     showProfile();
+                } else if (itemText === 'My Closet') {
+                    // Show main content sections
+                    document.querySelector('.grid-container').style.display = 'grid';
+                    document.querySelector('.main-nav').style.display = 'flex';
+                    document.querySelector('.sub-nav').style.display = 'flex';
+                    handleNavigation('Pieces');
                 }
             });
 
