@@ -341,8 +341,8 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                max-height: 100vh;
-                height: 100%;
+                max-height: 90vh;
+                height: auto;
                 overflow-y: auto;
                 padding: 20px;
                 -webkit-overflow-scrolling: touch;
@@ -436,9 +436,11 @@
                 background-color: #f8f8f8;
                 cursor: pointer;
                 transition: all 0.3s ease;
+                -webkit-tap-highlight-color: transparent;
             }
 
-            .upload-area:hover, .upload-area.dragover {
+            .upload-area:active,
+            .upload-area:hover {
                 border-color: #40b6ff;
                 background-color: #f0f7ff;
             }
@@ -1342,20 +1344,20 @@
 
             // Image handling functions
             async function handleImage(file) {
-                if (!file.type.startsWith('image/')) {
+                if (!file || !file.type.startsWith('image/')) {
                     alert('Please upload an image file');
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const img = new Image();
-                    img.onload = async () => {
-                        try {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
                             // Calculate dimensions while maintaining aspect ratio
                             let width = img.width;
                             let height = img.height;
-                            const maxSize = 1200; // Increased max size for better quality
+                            const maxSize = 1200;
 
                             if (width > maxSize || height > maxSize) {
                                 if (width > height) {
@@ -1372,37 +1374,37 @@
                             const ctx = canvas.getContext('2d');
                             canvas.width = width;
                             canvas.height = height;
-                            
+
                             // Draw white background
                             ctx.fillStyle = '#FFFFFF';
                             ctx.fillRect(0, 0, width, height);
-                            
+
                             // Draw image
                             ctx.drawImage(img, 0, 0, width, height);
-                            
-                            // Show preview
-                            currentImageData = canvas.toDataURL('image/png', 0.9);
-                            const previewImg = document.querySelector('#imagePreview img');
+
+                            // Update preview
                             const imagePreview = document.getElementById('imagePreview');
+                            const previewImg = imagePreview.querySelector('img');
                             const uploadArea = document.getElementById('uploadArea');
 
-                            if (previewImg && imagePreview && uploadArea) {
+                            currentImageData = canvas.toDataURL('image/jpeg', 0.9);
+
+                            if (previewImg) {
                                 previewImg.onload = () => {
                                     imagePreview.style.display = 'block';
                                     uploadArea.style.display = 'none';
+                                    checkRequiredFields();
                                 };
                                 previewImg.src = currentImageData;
                             }
-                            
-                            checkRequiredFields();
-                        } catch (error) {
-                            console.error('Error processing image:', error);
-                            alert('Error processing image. Please try again.');
-                        }
+                        };
+                        img.src = e.target.result;
                     };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+                    reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('Error processing image. Please try again.');
+                }
             }
 
             function showModal() {
@@ -1410,20 +1412,37 @@
                 const mainNav = document.querySelector('.main-nav');
                 const subNav = document.querySelector('.sub-nav');
                 const header = document.querySelector('header');
+                const uploadArea = document.getElementById('uploadArea');
+                const imageUpload = document.getElementById('imageUpload');
 
                 if (modal) {
                     modal.style.display = 'block';
                     document.body.style.overflow = 'hidden';
-
-                    // Check if device is mobile
-                    if (window.innerWidth <= 768) {
-                        if (mainNav) mainNav.style.display = 'none';
-                        if (subNav) subNav.style.display = 'none';
-                        if (header) header.style.paddingBottom = '0';
-                    }
+                    
+                    // Hide navigation elements
+                    if (mainNav) mainNav.style.display = 'none';
+                    if (subNav) subNav.style.display = 'none';
+                    if (header) header.style.paddingTop = '10px';
                     
                     resetForm();
                     initializeUploadHandlers();
+
+                    // Setup image upload handlers
+                    if (uploadArea && imageUpload) {
+                        const setupImageUpload = () => {
+                            uploadArea.addEventListener('click', () => {
+                                imageUpload.click();
+                            });
+
+                            imageUpload.addEventListener('change', (e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    handleImage(e.target.files[0]);
+                                }
+                            }, { once: true });
+                        };
+
+                        setupImageUpload();
+                    }
                 }
             }
 
@@ -1440,7 +1459,7 @@
                     // Restore navigation visibility
                     if (mainNav) mainNav.style.display = 'flex';
                     if (subNav) subNav.style.display = 'flex';
-                    if (header) header.style.paddingBottom = '';
+                    if (header) header.style.paddingTop = '';
                     
                     resetForm();
                 }
@@ -1918,6 +1937,16 @@
                     });
                 }
             }
+
+            // Update event listeners for add piece card and upload button
+            document.addEventListener('click', (e) => {
+                const addPieceCard = e.target.closest('.add-piece-card');
+                const uploadBtn = e.target.closest('.upload-button');
+                
+                if (addPieceCard || uploadBtn) {
+                    showModal();
+                }
+            });
         </script>
     </body>
     </html> 
