@@ -32,6 +32,7 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                padding-bottom: 80px;
             }
 
             /* Header Styles */
@@ -108,6 +109,8 @@
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 20px;
+                padding: 20px;
+                padding-bottom: 100px;
             }
 
             .add-piece-card {
@@ -301,18 +304,19 @@
             /* Create Outfit Button */
             .create-outfit-btn {
                 position: fixed;
-                bottom: 100px;
+                bottom: 80px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: #40b6ff;
+                background: #000;
                 color: #fff;
                 border: none;
-                padding: 12px 24px;
+                padding: 15px 30px;
                 border-radius: 25px;
+                font-size: 16px;
                 font-weight: 600;
                 cursor: pointer;
-                box-shadow: 0 4px 12px rgba(64, 182, 255, 0.3);
-                z-index: 1000;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                z-index: 999;
                 transition: all 0.3s ease;
             }
 
@@ -361,7 +365,7 @@
                 display: flex;
                 justify-content: center;
                 z-index: 2001;
-                margin-bottom: env(safe-area-inset-bottom, 0px);
+                padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
             }
 
             .upload-action-btn {
@@ -456,6 +460,63 @@
             .profile-info h1 {
                 color: #000;
                 margin: 0;
+            }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #fff;
+                display: flex;
+                justify-content: space-around;
+                padding: 15px;
+                border-top: 1px solid #eee;
+                z-index: 1000;
+            }
+
+            .bottom-nav .nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                cursor: pointer;
+                padding: 5px 15px;
+            }
+
+            .bottom-nav .nav-item img {
+                width: 24px;
+                height: 24px;
+            }
+
+            .bottom-nav .nav-item span {
+                font-size: 12px;
+                color: #666;
+            }
+
+            .bottom-nav .nav-item.active span {
+                color: #000;
+            }
+
+            /* Upload Button */
+            .upload-button {
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: #000;
+                color: #fff;
+                font-size: 24px;
+                border: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                z-index: 999;
             }
         </style>
     </head>
