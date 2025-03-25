@@ -147,12 +147,151 @@
             border-radius: 15px;
             overflow: hidden;
             aspect-ratio: 1;
+            position: relative;
         }
 
         .clothing-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* Item Actions */
+        .item-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .clothing-item:hover .item-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Outfit Grid */
+        .outfit-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .outfit-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 15px;
+        }
+
+        .outfit-items {
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            aspect-ratio: 0.7;
+        }
+
+        .outfit-item {
+            background: #f5f5f5;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .outfit-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Image Editor */
+        .image-editor {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+        }
+
+        .editor-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .editor-canvas {
+            flex: 1;
+            background: #f5f5f5;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .editor-tools {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .editor-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background: #000;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .editor-btn.secondary {
+            background: #f5f5f5;
+            color: #000;
+        }
+
+        /* Create Outfit Button */
+        .create-outfit-btn {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #40b6ff;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(64, 182, 255, 0.3);
+            z-index: 90;
         }
 
         /* Modal Styles */
@@ -416,6 +555,26 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Image Editor Modal -->
+            <div class="image-editor" id="imageEditor">
+                <div class="editor-content">
+                    <canvas id="editorCanvas" class="editor-canvas"></canvas>
+                    <div class="editor-tools">
+                        <button class="editor-btn" id="brushTool">Brush</button>
+                        <button class="editor-btn" id="eraserTool">Eraser</button>
+                        <button class="editor-btn" id="autoSelect">Auto Select</button>
+                        <button class="editor-btn secondary" id="undoBtn">Undo</button>
+                        <button class="editor-btn secondary" id="cancelEdit">Cancel</button>
+                        <button class="editor-btn" id="saveEdit">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Outfit Button -->
+            <button class="create-outfit-btn" id="createOutfitBtn" style="display: none;">
+                Create Outfit
+            </button>
         </main>
 
         <footer>
@@ -438,7 +597,7 @@
         tg.expand();
 
         // API configuration
-        const API_URL = 'http://localhost:8000'; // Update with your actual API URL
+        const API_URL = 'http://localhost:8000'; // Update with your actual backend URL when deployed
 
         document.addEventListener('DOMContentLoaded', () => {
             const addPieceCard = document.querySelector('.add-piece-card');
@@ -449,6 +608,20 @@
             const clothingGrid = document.getElementById('clothingGrid');
             const mainNav = document.querySelector('.main-nav');
             const subNav = document.querySelector('.sub-nav');
+            const imageEditor = document.getElementById('imageEditor');
+            const editorCanvas = document.getElementById('editorCanvas');
+            const createOutfitBtn = document.getElementById('createOutfitBtn');
+            let isEditingMode = false;
+            let selectedItems = new Set();
+
+            // Image editing variables
+            let ctx = editorCanvas.getContext('2d');
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            let tool = 'brush';
+            let brushSize = 20;
+            let undoStack = [];
 
             // Get user data from Telegram WebApp
             const userId = tg.initDataUnsafe?.user?.id;
@@ -556,11 +729,19 @@
                         canvas.width = img.width;
                         canvas.height = img.height;
                         
+                        // Draw white background first
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Draw image
                         ctx.drawImage(img, 0, 0);
+                        
+                        // Remove white background
                         removeBackground(canvas, ctx);
                         
-                        // Save item to API
-                        await saveItem(canvas.toDataURL());
+                        // Convert to base64 and save
+                        const imageData = canvas.toDataURL('image/png');
+                        await saveItem(imageData);
                     };
                 };
                 reader.readAsDataURL(file);
@@ -575,8 +756,9 @@
                     const g = data[i + 1];
                     const b = data[i + 2];
                     
+                    // Check if pixel is close to white
                     if (r > 240 && g > 240 && b > 240) {
-                        data[i + 3] = 0;
+                        data[i + 3] = 0; // Set alpha to 0 (transparent)
                     }
                 }
                 
@@ -586,12 +768,18 @@
             async function saveItem(imageUrl) {
                 const formData = {
                     image_url: imageUrl,
-                    user_id: userId
+                    user_id: userId,
+                    price: document.getElementById('price').value || null,
+                    type: document.getElementById('type').value || null,
+                    layer_type: document.getElementById('layerType').value || null,
+                    category: document.getElementById('category').value || null,
+                    brand: document.getElementById('brand').value || null,
+                    size: document.getElementById('size').value || null,
+                    style: document.getElementById('style').value || null,
+                    material: document.getElementById('material').value || null,
+                    color: document.getElementById('color').value || null,
+                    condition: document.getElementById('condition').value || null
                 };
-
-                formInputs.forEach(input => {
-                    formData[input.name] = input.value;
-                });
 
                 try {
                     const response = await fetch(`${API_URL}/items/`, {
@@ -602,19 +790,23 @@
                         body: JSON.stringify(formData)
                     });
 
-                    if (response.ok) {
-                        const item = await response.json();
-                        addToClothingGrid(item);
-                        modal.style.display = 'none';
-                        
-                        // Send data back to Telegram
-                        tg.sendData(JSON.stringify({
-                            type: 'item_added',
-                            item: item
-                        }));
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Failed to save item');
                     }
+
+                    const item = await response.json();
+                    addToClothingGrid(item);
+                    modal.style.display = 'none';
+                    
+                    // Send data back to Telegram
+                    tg.sendData(JSON.stringify({
+                        type: 'item_added',
+                        item: item
+                    }));
                 } catch (error) {
                     console.error('Error saving item:', error);
+                    alert('Failed to save item: ' + error.message);
                 }
             }
 
@@ -640,9 +832,39 @@
                 img.src = item.image_url;
                 img.alt = item.type || 'Clothing item';
                 
-                clothingItem.appendChild(img);
-                clothingGrid.appendChild(clothingItem);
+                const actions = document.createElement('div');
+                actions.className = 'item-actions';
                 
+                const editBtn = document.createElement('button');
+                editBtn.className = 'action-btn';
+                editBtn.innerHTML = '✏️';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    editItem(item);
+                };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'action-btn';
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteItem(item.id);
+                };
+                
+                actions.appendChild(editBtn);
+                actions.appendChild(deleteBtn);
+                
+                clothingItem.appendChild(img);
+                clothingItem.appendChild(actions);
+                
+                // Add click handler for outfit creation
+                clothingItem.addEventListener('click', () => {
+                    if (isEditingMode) {
+                        toggleItemSelection(clothingItem);
+                    }
+                });
+                
+                clothingGrid.appendChild(clothingItem);
                 updatePieceCount();
             }
 
@@ -667,6 +889,10 @@
             }
 
             function handleNavigation(section) {
+                isEditingMode = section.toLowerCase() === 'fits';
+                createOutfitBtn.style.display = isEditingMode ? 'block' : 'none';
+                selectedItems.clear();
+                
                 switch(section.toLowerCase()) {
                     case 'pieces':
                         loadUserItems();
@@ -695,22 +921,145 @@
                 });
             }
 
-            // Initialize Telegram WebApp buttons
-            tg.MainButton.setText('Create Outfit');
-            tg.MainButton.onClick(() => {
-                const selectedItems = document.querySelectorAll('.clothing-item.selected');
-                if (selectedItems.length > 0) {
-                    const outfitData = {
-                        items: Array.from(selectedItems).map(item => item.dataset.id),
-                        user_id: userId
-                    };
-                    
-                    tg.sendData(JSON.stringify({
-                        type: 'create_outfit',
-                        outfit: outfitData
-                    }));
+            async function editItem(item) {
+                modal.style.display = 'block';
+                // Fill form with item details
+                Object.keys(item).forEach(key => {
+                    const input = document.getElementById(key);
+                    if (input) {
+                        input.value = item[key];
+                        const valueSpan = input.nextElementSibling;
+                        valueSpan.textContent = item[key];
+                        if (item[key]) {
+                            input.style.width = '50%';
+                            valueSpan.style.width = '50%';
+                        }
+                    }
+                });
+            }
+
+            async function deleteItem(itemId) {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    try {
+                        const response = await fetch(`${API_URL}/items/${itemId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            const item = document.querySelector(`[data-id="${itemId}"]`);
+                            item.remove();
+                            updatePieceCount();
+                        }
+                    } catch (error) {
+                        console.error('Error deleting item:', error);
+                        alert('Failed to delete item');
+                    }
                 }
-            });
+            }
+
+            function toggleItemSelection(item) {
+                item.classList.toggle('selected');
+                if (item.classList.contains('selected')) {
+                    selectedItems.add(item.dataset.id);
+                } else {
+                    selectedItems.delete(item.dataset.id);
+                }
+                updateCreateOutfitButton();
+            }
+
+            function updateCreateOutfitButton() {
+                createOutfitBtn.style.display = selectedItems.size > 0 ? 'block' : 'none';
+            }
+
+            // Image Editor Functions
+            function initializeImageEditor(imageData) {
+                const img = new Image();
+                img.src = imageData;
+                img.onload = () => {
+                    editorCanvas.width = img.width;
+                    editorCanvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    imageEditor.style.display = 'block';
+                    saveCanvasState();
+                };
+            }
+
+            function saveCanvasState() {
+                undoStack.push(ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height));
+            }
+
+            function undo() {
+                if (undoStack.length > 1) {
+                    undoStack.pop(); // Remove current state
+                    ctx.putImageData(undoStack[undoStack.length - 1], 0, 0);
+                }
+            }
+
+            editorCanvas.addEventListener('mousedown', startDrawing);
+            editorCanvas.addEventListener('mousemove', draw);
+            editorCanvas.addEventListener('mouseup', stopDrawing);
+            editorCanvas.addEventListener('mouseout', stopDrawing);
+
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.strokeStyle = tool === 'brush' ? '#000000' : '#ffffff';
+                ctx.lineWidth = brushSize;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            function stopDrawing() {
+                if (isDrawing) {
+                    isDrawing = false;
+                    saveCanvasState();
+                }
+            }
+
+            // Tool selection
+            document.getElementById('brushTool').onclick = () => tool = 'brush';
+            document.getElementById('eraserTool').onclick = () => tool = 'eraser';
+            document.getElementById('undoBtn').onclick = undo;
+            document.getElementById('cancelEdit').onclick = () => {
+                imageEditor.style.display = 'none';
+                undoStack = [];
+            };
+            document.getElementById('saveEdit').onclick = () => {
+                const imageData = editorCanvas.toDataURL('image/png');
+                saveItem(imageData);
+                imageEditor.style.display = 'none';
+                undoStack = [];
+            };
+
+            // Auto select tool
+            document.getElementById('autoSelect').onclick = () => {
+                const imageData = ctx.getImageData(0, 0, editorCanvas.width, editorCanvas.height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    
+                    // Simple background detection
+                    if (r > 240 && g > 240 && b > 240) {
+                        data[i + 3] = 0; // Make white pixels transparent
+                    }
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+                saveCanvasState();
+            };
 
             // Additional functions for loading outfits and collections
             async function loadUserOutfits() {
@@ -739,10 +1088,29 @@
 
             function displayOutfits(outfits) {
                 clothingGrid.innerHTML = '';
+                clothingGrid.className = 'outfit-grid';
+                
                 outfits.forEach(outfit => {
-                    const outfitElement = document.createElement('div');
-                    outfitElement.className = 'outfit-item';
-                    // Add outfit display logic here
+                    const outfitCard = document.createElement('div');
+                    outfitCard.className = 'outfit-card';
+                    
+                    const items = document.createElement('div');
+                    items.className = 'outfit-items';
+                    
+                    outfit.items.forEach(item => {
+                        const itemElement = document.createElement('div');
+                        itemElement.className = 'outfit-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = item.image_url;
+                        img.alt = item.type;
+                        
+                        itemElement.appendChild(img);
+                        items.appendChild(itemElement);
+                    });
+                    
+                    outfitCard.appendChild(items);
+                    clothingGrid.appendChild(outfitCard);
                 });
             }
 
@@ -754,6 +1122,39 @@
                     // Add collection display logic here
                 });
             }
+
+            // Create outfit button handler
+            createOutfitBtn.addEventListener('click', async () => {
+                if (selectedItems.size < 2) {
+                    alert('Please select at least 2 items for an outfit');
+                    return;
+                }
+                
+                const outfitData = {
+                    items: Array.from(selectedItems),
+                    user_id: userId
+                };
+                
+                try {
+                    const response = await fetch(`${API_URL}/outfits/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(outfitData)
+                    });
+                    
+                    if (response.ok) {
+                        const outfit = await response.json();
+                        selectedItems.clear();
+                        updateCreateOutfitButton();
+                        loadUserOutfits();
+                    }
+                } catch (error) {
+                    console.error('Error creating outfit:', error);
+                    alert('Failed to create outfit');
+                }
+            });
         });
     </script>
 </body>
