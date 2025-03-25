@@ -484,6 +484,7 @@
                 gap: 5px;
                 cursor: pointer;
                 padding: 5px 15px;
+                z-index: 1001;
             }
 
             .bottom-nav .nav-item img {
@@ -1142,116 +1143,84 @@
                 }
             });
 
-            // Update drag and drop handlers
+            // Update initializeUploadHandlers function
             function initializeUploadHandlers() {
                 const uploadArea = document.getElementById('uploadArea');
                 const imageUpload = document.getElementById('imageUpload');
+                const imagePreview = document.getElementById('imagePreview');
 
                 if (uploadArea && imageUpload) {
-                    // Clean up old listeners
-                    const newUploadArea = uploadArea.cloneNode(true);
-                    const newImageUpload = imageUpload.cloneNode(true);
-                    uploadArea.parentNode.replaceChild(newUploadArea, uploadArea);
-                    imageUpload.parentNode.replaceChild(newImageUpload, imageUpload);
+                    // Show upload area and hide preview initially
+                    uploadArea.style.display = 'flex';
+                    if (imagePreview) {
+                        imagePreview.style.display = 'none';
+                    }
 
-                    // Add new listeners
-                    newUploadArea.addEventListener('click', () => {
-                        newImageUpload.click();
+                    // Handle click on upload area
+                    uploadArea.addEventListener('click', () => {
+                        imageUpload.click();
                     });
 
-                    newImageUpload.addEventListener('change', async (e) => {
+                    // Handle file selection
+                    imageUpload.addEventListener('change', (e) => {
                         if (e.target.files && e.target.files[0]) {
-                            try {
-                                await handleImage(e.target.files[0]);
-                            } catch (error) {
-                                console.error('Error handling image:', error);
-                                alert('Failed to process image. Please try again.');
-                            }
+                            handleImage(e.target.files[0]);
                         }
                     });
 
-                    // Prevent default drag behaviors
-                    newUploadArea.addEventListener('dragover', (e) => {
+                    // Handle drag and drop
+                    uploadArea.addEventListener('dragover', (e) => {
                         e.preventDefault();
-                        newUploadArea.classList.add('dragover');
+                        uploadArea.classList.add('dragover');
                     });
 
-                    newUploadArea.addEventListener('dragleave', (e) => {
-                        e.preventDefault();
-                        newUploadArea.classList.remove('dragover');
+                    uploadArea.addEventListener('dragleave', () => {
+                        uploadArea.classList.remove('dragover');
                     });
 
-                    newUploadArea.addEventListener('drop', async (e) => {
+                    uploadArea.addEventListener('drop', (e) => {
                         e.preventDefault();
-                        newUploadArea.classList.remove('dragover');
+                        uploadArea.classList.remove('dragover');
                         
-                        const files = e.dataTransfer.files;
-                        if (files.length > 0) {
-                            try {
-                                await handleImage(files[0]);
-                            } catch (error) {
-                                console.error('Error handling dropped image:', error);
-                                alert('Failed to process image. Please try again.');
-                            }
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                            handleImage(e.dataTransfer.files[0]);
                         }
                     });
                 }
-            }
 
-            // Update event listeners for add piece card and upload button
-            document.addEventListener('click', (e) => {
-                const addPieceCard = e.target.closest('.add-piece-card');
-                const uploadBtn = e.target.closest('.upload-button');
-                
-                if (addPieceCard || uploadBtn) {
-                    showModal();
-                }
-            });
-
-            // Add keyboard handling functions
-            function hideKeyboard() {
-                // Blur (unfocus) the active element to hide keyboard
-                if (document.activeElement instanceof HTMLElement) {
-                    document.activeElement.blur();
+                // Reset upload button state
+                const uploadItemBtn = document.getElementById('uploadItemBtn');
+                if (uploadItemBtn) {
+                    uploadItemBtn.disabled = true;
                 }
             }
 
-            // Add event listeners for keyboard handling
-            document.addEventListener('DOMContentLoaded', () => {
-                // Handle Enter key press
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        hideKeyboard();
-                    }
-                });
+            // Update form reset function
+            function resetForm() {
+                const form = document.querySelector('.form-list');
+                const imagePreview = document.getElementById('imagePreview');
+                const uploadArea = document.getElementById('uploadArea');
+                const uploadItemBtn = document.getElementById('uploadItemBtn');
 
-                // Handle touch outside of input fields
-                document.addEventListener('touchend', (e) => {
-                    const target = e.target;
-                    if (!(target instanceof HTMLInputElement) && 
-                        !(target instanceof HTMLSelectElement) && 
-                        !(target instanceof HTMLTextAreaElement)) {
-                        hideKeyboard();
-                    }
-                });
+                if (form) {
+                    form.reset();
+                }
 
-                // Add blur event listeners to all form inputs
-                document.querySelectorAll('.form-item input, .form-item select').forEach(input => {
-                    // Handle Enter key for individual inputs
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            hideKeyboard();
-                        }
-                    });
+                if (imagePreview) {
+                    imagePreview.style.display = 'none';
+                    imagePreview.querySelector('img').src = '';
+                }
 
-                    // Add done button to numeric inputs on iOS
-                    if (input.type === 'number' || input.type === 'tel') {
-                        input.setAttribute('pattern', '[0-9]*');
-                        input.setAttribute('inputmode', 'numeric');
-                    }
-                });
-            });
+                if (uploadArea) {
+                    uploadArea.style.display = 'flex';
+                }
+
+                if (uploadItemBtn) {
+                    uploadItemBtn.disabled = true;
+                }
+
+                currentImageData = null;
+            }
 
             // Update showModal function
             function showModal() {
@@ -1271,7 +1240,7 @@
                     if (subNav) subNav.style.display = 'none';
                     if (header) header.style.paddingTop = '10px';
                     
-                    // Reset scroll position and show upload area
+                    // Reset scroll position
                     const modalContent = modal.querySelector('.modal-content');
                     if (modalContent) {
                         modalContent.scrollTop = 0;
@@ -1283,6 +1252,7 @@
                     }
                     if (imagePreview) {
                         imagePreview.style.display = 'none';
+                        imagePreview.querySelector('img').src = '';
                     }
                     
                     resetForm();
@@ -1308,6 +1278,112 @@
                     }
                 }
             }
+
+            // Update handleImage function
+            async function handleImage(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('Please upload an image file');
+                    return;
+                }
+
+                try {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            // Calculate dimensions while maintaining aspect ratio
+                            let width = img.width;
+                            let height = img.height;
+                            const maxSize = 1200;
+
+                            if (width > maxSize || height > maxSize) {
+                                if (width > height) {
+                                    height = (height / width) * maxSize;
+                                    width = maxSize;
+                                } else {
+                                    width = (width / height) * maxSize;
+                                    height = maxSize;
+                                }
+                            }
+
+                            // Create canvas for resizing
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            // Draw image
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            // Update preview
+                            const imagePreview = document.getElementById('imagePreview');
+                            const previewImg = imagePreview.querySelector('img');
+                            const uploadArea = document.getElementById('uploadArea');
+
+                            currentImageData = canvas.toDataURL('image/jpeg', 0.9);
+                            
+                            if (imagePreview && previewImg && uploadArea) {
+                                imagePreview.style.display = 'block';
+                                uploadArea.style.display = 'none';
+                                previewImg.src = currentImageData;
+                            }
+
+                            // Enable upload button
+                            const uploadItemBtn = document.getElementById('uploadItemBtn');
+                            if (uploadItemBtn) {
+                                uploadItemBtn.disabled = false;
+                            }
+
+                            checkRequiredFields();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('Error processing image. Please try again.');
+                }
+            }
+
+            // Update bottom navigation handling
+            document.addEventListener('DOMContentLoaded', () => {
+                const bottomNav = document.querySelector('.bottom-nav');
+                if (bottomNav) {
+                    bottomNav.addEventListener('click', (e) => {
+                        const navItem = e.target.closest('.nav-item');
+                        if (!navItem) return;
+
+                        // Remove active class from all items
+                        bottomNav.querySelectorAll('.nav-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+
+                        // Add active class to clicked item
+                        navItem.classList.add('active');
+
+                        // Handle navigation
+                        if (navItem.querySelector('span').textContent === 'Profile') {
+                            showProfile();
+                        } else if (navItem.querySelector('span').textContent === 'My Closet') {
+                            // Show main content
+                            document.querySelector('.grid-container').style.display = 'grid';
+                            document.querySelector('.main-nav').style.display = 'flex';
+                            document.querySelector('.sub-nav').style.display = 'flex';
+                            document.querySelector('.upload-button').style.display = 'flex';
+                            
+                            // Reset main content
+                            const main = document.querySelector('main');
+                            const profileSection = main.querySelector('.profile');
+                            if (profileSection) {
+                                profileSection.remove();
+                            }
+                            
+                            // Load items
+                            loadUserItems();
+                        }
+                    });
+                }
+            });
         </script>
     </body>
     </html> 
