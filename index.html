@@ -1082,33 +1082,45 @@
 
             // Update save functionality
             async function saveItem(imageUrl) {
-                const formData = {
-                    image_url: imageUrl,
-                    user_id: userId,
-                    price: document.getElementById('price').value || null,
-                    type: document.getElementById('type').value,
-                    layer_type: document.getElementById('layerType').value || null,
-                    category: document.getElementById('category').value,
-                    brand: document.getElementById('brand').value || null,
-                    size: document.getElementById('size').value || null,
-                    style: document.getElementById('style').value || null,
-                    material: document.getElementById('material').value || null,
-                    color: document.getElementById('color').value || null,
-                    condition: document.getElementById('condition').value || null
+                const formData = new FormData();
+                
+                // Convert base64 image to blob
+                const base64Response = await fetch(imageUrl);
+                const blob = await base64Response.blob();
+                
+                // Add all form fields
+                formData.append('image', blob, 'image.png');
+                formData.append('user_id', userId.toString());
+                
+                const fields = {
+                    'price': document.getElementById('price').value,
+                    'type': document.getElementById('type').value,
+                    'layer_type': document.getElementById('layerType').value,
+                    'category': document.getElementById('category').value,
+                    'brand': document.getElementById('brand').value,
+                    'size': document.getElementById('size').value,
+                    'style': document.getElementById('style').value,
+                    'material': document.getElementById('material').value,
+                    'color': document.getElementById('color').value,
+                    'condition': document.getElementById('condition').value
                 };
+
+                // Add non-empty fields to formData
+                Object.entries(fields).forEach(([key, value]) => {
+                    if (value) {
+                        formData.append(key, value);
+                    }
+                });
 
                 try {
                     const response = await fetch(`${API_URL}/items/`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
+                        body: formData
                     });
 
                     if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.detail || 'Failed to save item');
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
                     }
 
                     const item = await response.json();
@@ -1118,6 +1130,7 @@
                     savedItems.push(item);
                     localStorage.setItem(`items_${userId}`, JSON.stringify(savedItems));
                     
+                    // Add item to grid and reset form
                     addToClothingGrid(item);
                     resetForm();
                     currentImageData = null;
@@ -1131,9 +1144,13 @@
                         type: 'item_added',
                         item: item
                     }));
+
+                    // Show success message
+                    alert('Item successfully saved!');
+                    
                 } catch (error) {
                     console.error('Error saving item:', error);
-                    alert('Failed to save item: ' + error.message);
+                    alert(`Failed to save item: ${error.message}`);
                 }
             }
 
