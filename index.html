@@ -1235,18 +1235,84 @@
             }
 
             function handleNavigation(section) {
+                const mainContent = document.querySelector('main');
                 isEditingMode = section.toLowerCase() === 'fits';
                 createOutfitBtn.style.display = isEditingMode ? 'block' : 'none';
+                
+                // Reset selection when switching modes
                 selectedItems.clear();
+                document.querySelectorAll('.clothing-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                if (isEditingMode) {
+                    // Enable selection mode for items
+                    document.querySelectorAll('.clothing-item').forEach(item => {
+                        item.classList.add('selectable');
+                    });
+                    
+                    // Show the create outfit button at the bottom
+                    createOutfitBtn.style.display = 'block';
+                    
+                    // Add selection styling
+                    const style = document.createElement('style');
+                    style.id = 'selection-styles';
+                    style.textContent = `
+                        .clothing-item.selectable {
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        }
+                        .clothing-item.selectable:hover {
+                            transform: scale(1.05);
+                        }
+                        .clothing-item.selected {
+                            border: 3px solid #40b6ff;
+                            transform: scale(1.05);
+                        }
+                        .clothing-item.selected::after {
+                            content: '✓';
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            background: #40b6ff;
+                            color: white;
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 14px;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                } else {
+                    // Remove selection mode
+                    document.querySelectorAll('.clothing-item').forEach(item => {
+                        item.classList.remove('selectable');
+                    });
+                    
+                    // Remove selection styles
+                    const selectionStyles = document.getElementById('selection-styles');
+                    if (selectionStyles) {
+                        selectionStyles.remove();
+                    }
+                    
+                    // Hide the create outfit button
+                    createOutfitBtn.style.display = 'none';
+                }
                 
                 switch(section.toLowerCase()) {
                     case 'pieces':
+                        clothingGrid.className = 'clothing-grid';
                         loadUserItems();
                         break;
                     case 'fits':
-                        loadUserOutfits();
+                        clothingGrid.className = 'clothing-grid';
+                        // Don't clear the grid, just enable selection mode
                         break;
                     case 'collections':
+                        clothingGrid.className = 'collections-grid';
                         loadUserCollections();
                         break;
                 }
@@ -1309,17 +1375,24 @@
             }
 
             function toggleItemSelection(item) {
+                if (!isEditingMode) return;
+                
                 item.classList.toggle('selected');
                 if (item.classList.contains('selected')) {
                     selectedItems.add(item.dataset.id);
                 } else {
                     selectedItems.delete(item.dataset.id);
                 }
-                updateCreateOutfitButton();
-            }
-
-            function updateCreateOutfitButton() {
-                createOutfitBtn.style.display = selectedItems.size > 0 ? 'block' : 'none';
+                
+                // Update create outfit button visibility and style
+                if (selectedItems.size >= 2) {
+                    createOutfitBtn.style.display = 'block';
+                    createOutfitBtn.style.opacity = '1';
+                    createOutfitBtn.style.transform = 'translateX(-50%) scale(1.1)';
+                } else {
+                    createOutfitBtn.style.opacity = '0.5';
+                    createOutfitBtn.style.transform = 'translateX(-50%) scale(1)';
+                }
             }
 
             // Image Editor Functions
