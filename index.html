@@ -1535,8 +1535,8 @@
                 const subNav = document.querySelector('.sub-nav');
                 const header = document.querySelector('header');
                 const uploadArea = document.getElementById('uploadArea');
-                const imagePreview = document.getElementById('imagePreview');
-                const previewActions = document.querySelector('.preview-actions');
+                const previewImage = document.getElementById('previewImage');
+                const previewActions = document.getElementById('previewActions');
 
                 if (modal) {
                     modal.style.display = 'block';
@@ -1560,17 +1560,15 @@
                     if (uploadArea) {
                         uploadArea.style.display = 'flex';
                     }
-                    if (imagePreview) {
-                        imagePreview.style.display = 'none';
-                        const previewImg = imagePreview.querySelector('img');
-                        if (previewImg) {
-                            previewImg.src = '';
-                        }
+                    if (previewImage) {
+                        previewImage.style.display = 'none';
+                        previewImage.src = '';
                     }
                     if (previewActions) {
                         previewActions.style.display = 'none';
                     }
                     
+                    // Initialize upload handlers
                     initializeUploadHandlers();
                     
                     // Add click handler to modal background
@@ -1593,8 +1591,8 @@
                     document.body.style.overflow = 'auto';
                     
                     // Restore navigation based on current section
-                    const currentSection = document.querySelector('.main-nav .nav-item.active').textContent;
-                    if (currentSection.toLowerCase() === 'pieces') {
+                    const currentSection = document.querySelector('.main-nav .nav-item.active')?.textContent;
+                    if (currentSection?.toLowerCase() === 'pieces') {
                         if (mainNav) mainNav.style.display = 'flex';
                         if (subNav) subNav.style.display = 'flex';
                     }
@@ -1684,6 +1682,27 @@
 
             // Update bottom navigation handling
             document.addEventListener('DOMContentLoaded', () => {
+                // Initialize navigation handlers
+                initializeNavigationHandlers();
+                
+                // Initialize upload handlers
+                initializeUploadHandlers();
+            });
+
+            // Add new function for navigation handlers
+            function initializeNavigationHandlers() {
+                // Handle main navigation
+                const mainNav = document.querySelector('.main-nav');
+                if (mainNav) {
+                    mainNav.addEventListener('click', (e) => {
+                        const navItem = e.target.closest('.nav-item');
+                        if (navItem) {
+                            handleNavigation(navItem.textContent);
+                        }
+                    });
+                }
+
+                // Handle bottom navigation
                 const bottomNav = document.querySelector('.bottom-nav');
                 if (bottomNav) {
                     bottomNav.addEventListener('click', async (e) => {
@@ -1738,7 +1757,15 @@
                         }
                     });
                 }
-            });
+
+                // Handle Add Piece card
+                const addPieceCard = document.querySelector('.add-piece-card');
+                if (addPieceCard) {
+                    addPieceCard.addEventListener('click', () => {
+                        showModal();
+                    });
+                }
+            }
 
             // Add keyboard handling
             document.addEventListener('DOMContentLoaded', () => {
@@ -1828,46 +1855,6 @@
             // Add click handlers for preview actions
             removeImageBtn.addEventListener('click', () => {
                 resetForm();
-            });
-
-            // Initialize upload handlers
-            document.addEventListener('DOMContentLoaded', () => {
-                const uploadArea = document.getElementById('uploadArea');
-                const imageUpload = document.getElementById('imageUpload');
-
-                // Handle click on upload area
-                uploadArea.addEventListener('click', () => {
-                    imageUpload.click();
-                });
-
-                // Handle file selection
-                imageUpload.addEventListener('change', (e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        handleImage(e.target.files[0]);
-                    }
-                });
-
-                // Handle drag and drop
-                uploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadArea.style.border = '2px dashed #000';
-                    uploadArea.style.backgroundColor = 'rgba(0, 110, 255, 0.1)';
-                });
-
-                uploadArea.addEventListener('dragleave', () => {
-                    uploadArea.style.border = '2px dashed #40b6ff';
-                    uploadArea.style.backgroundColor = 'transparent';
-                });
-
-                uploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadArea.style.border = '2px dashed #40b6ff';
-                    uploadArea.style.backgroundColor = 'transparent';
-                    
-                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        handleImage(e.dataTransfer.files[0]);
-                    }
-                });
             });
         </script>
     </body>
