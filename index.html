@@ -1358,33 +1358,6 @@
                 }
             }
 
-            // Update form reset function
-            function resetForm() {
-                const form = document.querySelector('.form-list');
-                const imagePreview = document.getElementById('imagePreview');
-                const uploadArea = document.getElementById('uploadArea');
-                const uploadItemBtn = document.getElementById('uploadItemBtn');
-
-                if (form) {
-                    form.reset();
-                }
-
-                if (imagePreview) {
-                    imagePreview.style.display = 'none';
-                    imagePreview.querySelector('img').src = '';
-                }
-
-                if (uploadArea) {
-                    uploadArea.style.display = 'flex';
-                }
-
-                if (uploadItemBtn) {
-                    uploadItemBtn.disabled = true;
-                }
-
-                currentImageData = null;
-            }
-
             // Update showModal function
             function showModal() {
                 const modal = document.getElementById('uploadModal');
@@ -1410,16 +1383,24 @@
                         modalContent.scrollTop = 0;
                     }
                     
-                    // Ensure proper display state
-                    if (uploadArea) uploadArea.style.display = 'flex';
+                    // Reset form state
+                    resetForm();
+                    
+                    // Show upload area and hide preview
+                    if (uploadArea) {
+                        uploadArea.style.display = 'flex';
+                    }
                     if (imagePreview) {
                         imagePreview.style.display = 'none';
                         const previewImg = imagePreview.querySelector('img');
-                        if (previewImg) previewImg.src = '';
+                        if (previewImg) {
+                            previewImg.src = '';
+                        }
                     }
-                    if (previewActions) previewActions.style.display = 'none';
+                    if (previewActions) {
+                        previewActions.style.display = 'none';
+                    }
                     
-                    resetForm();
                     initializeUploadHandlers();
                     
                     // Add click handler to modal background
@@ -1461,22 +1442,73 @@
                 const previewImg = imagePreview.querySelector('img');
                 const uploadArea = document.getElementById('uploadArea');
                 const uploadItemBtn = document.getElementById('uploadItemBtn');
+                const previewActions = document.querySelector('.preview-actions');
 
                 // Create object URL for preview
                 const objectUrl = URL.createObjectURL(file);
                 
-                // Hide upload area and show preview
-                uploadArea.style.display = 'none';
-                imagePreview.style.display = 'block';
+                // Hide upload area
+                if (uploadArea) {
+                    uploadArea.style.display = 'none';
+                }
                 
-                // Set image source
-                previewImg.src = objectUrl;
+                // Show preview container and image
+                if (imagePreview) {
+                    imagePreview.style.display = 'block';
+                }
                 
+                // Show preview actions
+                if (previewActions) {
+                    previewActions.style.display = 'flex';
+                }
+                
+                // Set image source and enable upload button
+                if (previewImg) {
+                    previewImg.onload = () => {
+                        if (uploadItemBtn) {
+                            uploadItemBtn.disabled = false;
+                        }
+                    };
+                    previewImg.src = objectUrl;
+                }
+
                 // Store the file for later upload
                 currentImageData = file;
-                
-                // Enable upload button
-                uploadItemBtn.disabled = false;
+            }
+
+            // Update resetForm function
+            function resetForm() {
+                const form = document.querySelector('.form-list');
+                const imagePreview = document.getElementById('imagePreview');
+                const uploadArea = document.getElementById('uploadArea');
+                const uploadItemBtn = document.getElementById('uploadItemBtn');
+                const previewActions = document.querySelector('.preview-actions');
+
+                if (form) {
+                    form.reset();
+                }
+
+                if (imagePreview) {
+                    imagePreview.style.display = 'none';
+                    const previewImg = imagePreview.querySelector('img');
+                    if (previewImg) {
+                        previewImg.src = '';
+                    }
+                }
+
+                if (uploadArea) {
+                    uploadArea.style.display = 'flex';
+                }
+
+                if (uploadItemBtn) {
+                    uploadItemBtn.disabled = true;
+                }
+
+                if (previewActions) {
+                    previewActions.style.display = 'none';
+                }
+
+                currentImageData = null;
             }
 
             // Update bottom navigation handling
