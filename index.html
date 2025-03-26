@@ -165,9 +165,6 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                text-indent: -9999px;
-                font-size: 0;
-                line-height: 0;
             }
 
             .clothing-item img {
@@ -176,9 +173,6 @@
                 object-fit: contain;
                 background: #f5f5f5;
                 display: block;
-                font-size: 0;
-                line-height: 0;
-                text-indent: -9999px;
             }
 
             .clothing-item::before,
@@ -322,7 +316,7 @@
             /* Create Outfit Button */
             .create-outfit-btn {
                 position: fixed;
-                bottom: 80px;
+                bottom: 100px;
                 left: 50%;
                 transform: translateX(-50%);
                 background: #000;
@@ -336,6 +330,15 @@
                 box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 z-index: 999;
                 transition: all 0.3s ease;
+                margin-bottom: env(safe-area-inset-bottom, 0px);
+            }
+
+            @media (max-width: 768px) {
+                .create-outfit-btn {
+                    bottom: 80px;
+                    padding: 12px 24px;
+                    font-size: 14px;
+                }
             }
 
             .create-outfit-btn:hover {
@@ -397,6 +400,20 @@
                 cursor: pointer;
                 min-width: 200px;
                 -webkit-appearance: none;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            @media (max-width: 768px) {
+                .form-actions {
+                    padding: 10px;
+                }
+                
+                .upload-action-btn {
+                    padding: 12px 24px;
+                    font-size: 14px;
+                    min-width: 150px;
+                }
             }
 
             /* Image Preview Styles */
@@ -1157,7 +1174,7 @@
                             
                             const img = document.createElement('img');
                             img.src = item.image_url;
-                            img.alt = '';
+                            img.alt = item.type || 'Clothing item';
                             img.setAttribute('aria-hidden', 'true');
                             img.setAttribute('role', 'presentation');
                             
@@ -1183,9 +1200,7 @@
                     
                     const img = document.createElement('img');
                     img.src = item.image_url;
-                    img.alt = '';
-                    img.setAttribute('aria-hidden', 'true');
-                    img.setAttribute('role', 'presentation');
+                    img.alt = item.type || 'Clothing item';
                     
                     itemElement.appendChild(img);
                     clothingGrid.appendChild(itemElement);
@@ -1418,76 +1433,33 @@
                 }
 
                 try {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
+                    const imagePreview = document.getElementById('imagePreview');
+                    const previewImg = imagePreview.querySelector('img');
+                    const uploadArea = document.getElementById('uploadArea');
+                    const uploadItemBtn = document.getElementById('uploadItemBtn');
+
+                    // Create object URL for preview
+                    const objectUrl = URL.createObjectURL(file);
+                    
+                    // Show preview immediately
+                    if (imagePreview && previewImg && uploadArea) {
+                        uploadArea.style.display = 'none';
+                        imagePreview.style.display = 'block';
                         
-                        img.onload = () => {
-                            // Calculate dimensions while maintaining aspect ratio
-                            let width = img.width;
-                            let height = img.height;
-                            const maxSize = 1200;
+                        // Set image source using object URL
+                        previewImg.src = objectUrl;
+                        
+                        // Enable upload button
+                        if (uploadItemBtn) {
+                            uploadItemBtn.disabled = false;
+                        }
+                        
+                        // Check required fields
+                        checkRequiredFields();
+                    }
 
-                            if (width > maxSize || height > maxSize) {
-                                if (width > height) {
-                                    height = (height / width) * maxSize;
-                                    width = maxSize;
-                                } else {
-                                    width = (width / height) * maxSize;
-                                    height = maxSize;
-                                }
-                            }
-
-                            // Create canvas for resizing
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            canvas.width = width;
-                            canvas.height = height;
-
-                            // Draw image
-                            ctx.drawImage(img, 0, 0, width, height);
-
-                            // Get elements
-                            const imagePreview = document.getElementById('imagePreview');
-                            const previewImg = imagePreview.querySelector('img');
-                            const uploadArea = document.getElementById('uploadArea');
-                            const uploadItemBtn = document.getElementById('uploadItemBtn');
-
-                            // Convert to JPEG with high quality
-                            currentImageData = canvas.toDataURL('image/jpeg', 0.9);
-
-                            // Show preview immediately
-                            if (imagePreview && previewImg && uploadArea) {
-                                uploadArea.style.display = 'none';
-                                imagePreview.style.display = 'block';
-                                
-                                // Set image source
-                                previewImg.src = currentImageData;
-                                
-                                // Enable upload button
-                                if (uploadItemBtn) {
-                                    uploadItemBtn.disabled = false;
-                                }
-                                
-                                // Check required fields
-                                checkRequiredFields();
-                            }
-                        };
-
-                        img.onerror = () => {
-                            console.error('Error loading image');
-                            alert('Error loading image. Please try again.');
-                        };
-
-                        img.src = e.target.result;
-                    };
-
-                    reader.onerror = () => {
-                        console.error('Error reading file');
-                        alert('Error reading file. Please try again.');
-                    };
-
-                    reader.readAsDataURL(file);
+                    // Store the file for later upload
+                    currentImageData = file;
                 } catch (error) {
                     console.error('Error processing image:', error);
                     alert('Error processing image. Please try again.');
@@ -1519,10 +1491,12 @@
                             const gridContainer = document.querySelector('.grid-container');
                             const mainNav = document.querySelector('.main-nav');
                             const subNav = document.querySelector('.sub-nav');
+                            const addPieceCard = document.querySelector('.add-piece-card');
                             
                             if (gridContainer) gridContainer.style.display = 'grid';
                             if (mainNav) mainNav.style.display = 'flex';
                             if (subNav) subNav.style.display = 'flex';
+                            if (addPieceCard) addPieceCard.style.display = 'block';
                             
                             // Reset main content
                             const main = document.querySelector('main');
