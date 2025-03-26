@@ -1491,20 +1491,24 @@
                         uploadArea.style.display = 'none';
                         imagePreview.style.display = 'block';
                         
-                        // Set image source using object URL
+                        // Set image source and wait for it to load
+                        previewImg.onload = () => {
+                            // Enable upload button once image is loaded
+                            if (uploadItemBtn) {
+                                uploadItemBtn.disabled = false;
+                            }
+                        };
                         previewImg.src = objectUrl;
-                        
-                        // Enable upload button
-                        if (uploadItemBtn) {
-                            uploadItemBtn.disabled = false;
-                        }
-                        
-                        // Check required fields
-                        checkRequiredFields();
                     }
 
                     // Store the file for later upload
                     currentImageData = file;
+                    
+                    // Show preview actions
+                    const previewActions = document.querySelector('.preview-actions');
+                    if (previewActions) {
+                        previewActions.style.display = 'flex';
+                    }
                 } catch (error) {
                     console.error('Error processing image:', error);
                     alert('Error processing image. Please try again.');
