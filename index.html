@@ -442,6 +442,50 @@
                 transform: translateZ(0);
             }
 
+            .preview-actions {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                display: flex;
+                gap: 10px;
+                z-index: 10;
+            }
+
+            .preview-action-btn {
+                background: rgba(255, 255, 255, 0.9);
+                border: none;
+                border-radius: 20px;
+                padding: 8px 16px;
+                font-size: 14px;
+                cursor: pointer;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            #autoRemoveBtn {
+                background: #40b6ff;
+                color: white;
+            }
+
+            .preview-action-btn:hover {
+                transform: scale(1.05);
+            }
+
+            @media (max-width: 768px) {
+                .preview-actions {
+                    flex-direction: column;
+                    top: 10px;
+                    right: 10px;
+                }
+                
+                .preview-action-btn {
+                    padding: 6px 12px;
+                    font-size: 12px;
+                }
+            }
+
             /* Form Styles */
             .form-list {
                 display: flex;
@@ -750,6 +794,7 @@
                         <div class="image-preview" id="imagePreview">
                             <img src="" alt="Preview">
                             <div class="preview-actions">
+                                <button class="preview-action-btn" id="autoRemoveBtn">Auto Remove Background</button>
                                 <button class="preview-action-btn" id="editImageBtn">✏️</button>
                                 <button class="preview-action-btn" id="removeImageBtn">🗑️</button>
                             </div>
@@ -1553,6 +1598,55 @@
             if (pieceCountElement) {
                 pieceCountElement.textContent = '10/10 Free pieces';
             }
+
+            // Add auto-remove background functionality
+            document.getElementById('autoRemoveBtn').addEventListener('click', async () => {
+                if (!currentImageData) return;
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('image', currentImageData);
+                    
+                    // Show loading state
+                    const autoRemoveBtn = document.getElementById('autoRemoveBtn');
+                    const originalText = autoRemoveBtn.textContent;
+                    autoRemoveBtn.textContent = 'Processing...';
+                    autoRemoveBtn.disabled = true;
+                    
+                    // Send image to backend for processing
+                    const response = await fetch(`${API_URL}/remove-background`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to remove background');
+                    }
+                    
+                    const blob = await response.blob();
+                    const objectUrl = URL.createObjectURL(blob);
+                    
+                    // Update preview with processed image
+                    const previewImg = document.querySelector('#imagePreview img');
+                    previewImg.src = objectUrl;
+                    
+                    // Update currentImageData with processed image
+                    currentImageData = new File([blob], 'processed_image.png', { type: 'image/png' });
+                    
+                    // Reset button state
+                    autoRemoveBtn.textContent = originalText;
+                    autoRemoveBtn.disabled = false;
+                    
+                } catch (error) {
+                    console.error('Error removing background:', error);
+                    alert('Failed to remove background. Please try again.');
+                    
+                    // Reset button state
+                    const autoRemoveBtn = document.getElementById('autoRemoveBtn');
+                    autoRemoveBtn.textContent = 'Auto Remove Background';
+                    autoRemoveBtn.disabled = false;
+                }
+            });
         </script>
     </body>
     </html> 
