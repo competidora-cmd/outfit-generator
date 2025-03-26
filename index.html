@@ -1143,6 +1143,29 @@
                 itemsCount: 0
             };
 
+            // Массив для хранения предметов одежды (будем сохранять в localStorage)
+            let userClothingItems = [];
+            
+            // Загружаем предметы одежды из localStorage
+            function loadClothingItemsFromStorage() {
+                const storedItems = localStorage.getItem('userClothingItems');
+                if (storedItems) {
+                    try {
+                        userClothingItems = JSON.parse(storedItems);
+                        console.log(`Loaded ${userClothingItems.length} items from storage`);
+                    } catch (e) {
+                        console.error('Failed to parse stored items:', e);
+                        userClothingItems = [];
+                    }
+                }
+            }
+            
+            // Сохраняем предметы одежды в localStorage
+            function saveClothingItemsToStorage() {
+                localStorage.setItem('userClothingItems', JSON.stringify(userClothingItems));
+                console.log(`Saved ${userClothingItems.length} items to storage`);
+            }
+
             // Function to show the modal
             function showModal() {
                 console.log('Showing modal');
@@ -1181,8 +1204,65 @@
                 // Clear existing items
                 clothingGrid.innerHTML = '';
                 
-                // Тестовые элементы удалены
-                console.log('Ready to display real user items when available');
+                // Загружаем сохраненные элементы из хранилища
+                loadClothingItemsFromStorage();
+                
+                // Проверяем есть ли элементы
+                if (userClothingItems.length === 0) {
+                    console.log('No clothing items found');
+                    return;
+                }
+                
+                // Отображаем загруженные элементы
+                userClothingItems.forEach((item, index) => {
+                    const clothingItem = document.createElement('div');
+                    clothingItem.className = 'clothing-item';
+                    clothingItem.dataset.id = index;
+                    
+                    let imageHTML = '';
+                    if (item.imageUrl) {
+                        imageHTML = `<img src="${item.imageUrl}" alt="${item.type || 'Clothing item'}" />`;
+                    } else {
+                        imageHTML = `<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmNWY1ZjUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSIjNjY2Ij4ke item.type || 'Item'}</dGV4dD48L3N2Zz4=" alt="${item.type || 'Clothing item'}" />`;
+                    }
+                    
+                    clothingItem.innerHTML = `
+                        ${imageHTML}
+                        <div class="item-actions">
+                            <button class="action-btn edit-item-btn" data-id="${index}">✏️</button>
+                            <button class="action-btn delete-item-btn" data-id="${index}">🗑️</button>
+                        </div>
+                    `;
+                    
+                    clothingGrid.appendChild(clothingItem);
+                });
+                
+                // Добавляем обработчики событий для кнопок редактирования и удаления
+                document.querySelectorAll('.edit-item-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const itemId = this.dataset.id;
+                        console.log(`Edit item ${itemId}`);
+                        // Здесь можно добавить код для редактирования элемента
+                    });
+                });
+                
+                document.querySelectorAll('.delete-item-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const itemId = parseInt(this.dataset.id);
+                        console.log(`Delete item ${itemId}`);
+                        
+                        if (confirm('Вы уверены, что хотите удалить этот предмет?')) {
+                            userClothingItems.splice(itemId, 1);
+                            saveClothingItemsToStorage();
+                            loadUserItems(); // Перезагружаем список
+                        }
+                    });
+                });
+                
+                // Обновляем счетчик в профиле
+                userProfile.itemsCount = userClothingItems.length;
             }
 
             // Function to handle loading user collections
@@ -1555,8 +1635,44 @@
                 if (uploadItemBtn) {
                     uploadItemBtn.addEventListener('click', function() {
                         console.log('Upload button clicked');
+                        
+                        // Проверяем, есть ли изображение
+                        if (!currentImageData) {
+                            alert('Please select an image first');
+                            return;
+                        }
+                        
+                        // Создаем объект для нового предмета
+                        const newItem = {
+                            id: Date.now(), // Уникальный ID на основе времени
+                            imageUrl: previewImage.src, // URL изображения из превью
+                            type: document.getElementById('type')?.value || '',
+                            price: document.getElementById('price')?.value || '',
+                            layerType: document.getElementById('layerType')?.value || '',
+                            category: document.getElementById('category')?.value || '',
+                            brand: document.getElementById('brand')?.value || '',
+                            size: document.getElementById('size')?.value || '',
+                            style: document.getElementById('style')?.value || '',
+                            material: document.getElementById('material')?.value || '',
+                            color: document.getElementById('color')?.value || '',
+                            condition: document.getElementById('condition')?.value || '',
+                            dateAdded: new Date().toISOString()
+                        };
+                        
+                        // Добавляем новый предмет в массив
+                        userClothingItems.push(newItem);
+                        
+                        // Сохраняем в localStorage
+                        saveClothingItemsToStorage();
+                        
+                        // Уведомляем пользователя
                         alert('Item added successfully!');
+                        
+                        // Закрываем модальное окно
                         closeModal();
+                        
+                        // Перезагружаем список элементов
+                        loadUserItems();
                     });
                 }
                 
@@ -2036,12 +2152,37 @@
             document.addEventListener('DOMContentLoaded', function() {
                 console.log('DOM content loaded');
                 
+                // Загружаем предметы из localStorage
+                loadClothingItemsFromStorage();
+                
                 // Initialize all handlers
                 initializeAllHandlers();
                 
                 // Load user items
                 loadUserItems();
+                
+                // Обновляем счетчик доступных слотов
+                updatePieceCounter();
             });
+            
+            // Функция для обновления счетчика предметов
+            function updatePieceCounter() {
+                const pieceCountElement = document.querySelector('.piece-count');
+                if (pieceCountElement) {
+                    const usedSlots = userClothingItems.length;
+                    const totalSlots = 10; // Бесплатное ограничение
+                    pieceCountElement.textContent = `${usedSlots}/${totalSlots} Free pieces`;
+                    
+                    // Визуально подсвечиваем, если пользователь близок к лимиту
+                    if (usedSlots >= totalSlots) {
+                        pieceCountElement.style.color = '#ff4d4d';
+                    } else if (usedSlots >= totalSlots * 0.8) {
+                        pieceCountElement.style.color = '#ffa64d';
+                    } else {
+                        pieceCountElement.style.color = '#666';
+                    }
+                }
+            }
         </script>
 
         <!-- Import Ionicons -->
