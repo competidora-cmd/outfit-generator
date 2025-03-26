@@ -1960,48 +1960,32 @@
                             const formData = new FormData();
                             formData.append('file', currentImageData);
                             
-                            let isSuccess = false;
+                            // Make the request
+                            const response = await fetch('http://45.153.189.61:8000/remove-background', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'Accept': 'image/*'
+                                },
+                                mode: 'cors'
+                            });
                             
-                            try {
-                                // Try using the server with HTTPS
-                                const controller = new AbortController();
-                                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                            if (response.ok) {
+                                // Get processed image
+                                const blob = await response.blob();
+                                const objectUrl = URL.createObjectURL(blob);
                                 
-                                const response = await fetch('https://45.153.189.61:8000/remove-background', {
-                                    method: 'POST',
-                                    body: formData,
-                                    headers: {
-                                        'Accept': 'image/*'
-                                    },
-                                    mode: 'cors',
-                                    signal: controller.signal
-                                });
+                                // Update preview and save processed image
+                                previewImage.onload = function() {
+                                    console.log('Processed image loaded successfully');
+                                };
+                                previewImage.src = objectUrl;
                                 
-                                clearTimeout(timeoutId);
-                                
-                                if (response.ok) {
-                                    // Get processed image
-                                    const blob = await response.blob();
-                                    const objectUrl = URL.createObjectURL(blob);
-                                    
-                                    // Update preview and save processed image
-                                    previewImage.onload = function() {
-                                        console.log('Processed image loaded successfully');
-                                    };
-                                    previewImage.src = objectUrl;
-                                    
-                                    // Replace current image with processed one
-                                    currentImageData = new File([blob], 'processed_image.png', { type: 'image/png' });
-                                    
-                                    // Successfully processed
-                                    isSuccess = true;
-                                } else {
-                                    console.warn('Server returned error:', await response.text());
-                                    throw new Error('Server processing failed');
-                                }
-                            } catch (serverError) {
-                                console.warn('Server error:', serverError);
-                                throw serverError;
+                                // Replace current image with processed one
+                                currentImageData = new File([blob], 'processed_image.png', { type: 'image/png' });
+                            } else {
+                                console.warn('Server returned error:', await response.text());
+                                throw new Error('Server processing failed');
                             }
                             
                             // Restore button state
