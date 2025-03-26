@@ -162,6 +162,12 @@
                 overflow: hidden;
                 aspect-ratio: 1;
                 position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-indent: -9999px;
+                font-size: 0;
+                line-height: 0;
             }
 
             .clothing-item img {
@@ -169,6 +175,18 @@
                 height: 100%;
                 object-fit: contain;
                 background: #f5f5f5;
+                display: block;
+                font-size: 0;
+                line-height: 0;
+                text-indent: -9999px;
+            }
+
+            .clothing-item::before,
+            .clothing-item::after,
+            .clothing-item *::before,
+            .clothing-item *::after {
+                display: none !important;
+                content: none !important;
             }
 
             /* Item Actions */
@@ -802,7 +820,7 @@
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button class="upload-action-btn" id="uploadItemBtn" disabled>Upload Item</button>
+                            <button class="upload-action-btn" id="uploadItemBtn" disabled>Add Piece</button>
                         </div>
                     </div>
                 </div>
@@ -925,19 +943,22 @@
                 // Handle different sections
                 switch(section.toLowerCase()) {
                     case 'fits':
+                    case 'collections':
                         // Hide sub-navigation and add piece card
                         if (subNav) subNav.style.display = 'none';
                         if (addPieceCard) addPieceCard.style.display = 'none';
                         
-                        // Show create outfit button
+                        // Show create outfit button only for fits
                         if (createOutfitBtn) {
-                            createOutfitBtn.style.display = 'block';
-                            createOutfitBtn.style.opacity = '0.5';
+                            createOutfitBtn.style.display = section.toLowerCase() === 'fits' ? 'block' : 'none';
+                            if (section.toLowerCase() === 'fits') {
+                                createOutfitBtn.style.opacity = '0.5';
+                            }
                         }
                         
-                        // Enable selection mode for items
+                        // Enable selection mode for fits only
                         document.querySelectorAll('.clothing-item').forEach(item => {
-                            item.classList.add('selectable');
+                            item.classList.toggle('selectable', section.toLowerCase() === 'fits');
                         });
 
                         // Show grid container
@@ -945,7 +966,8 @@
                             gridContainer.style.display = 'grid';
                         }
 
-                        loadUserItems();
+                        // Load appropriate content
+                        section.toLowerCase() === 'fits' ? loadUserItems() : loadUserCollections();
                         break;
 
                     case 'pieces':
@@ -969,24 +991,6 @@
                         }
 
                         loadUserItems();
-                        break;
-
-                    case 'collections':
-                        // Show sub-navigation
-                        if (subNav) subNav.style.display = 'flex';
-                        if (addPieceCard) addPieceCard.style.display = 'none';
-                        
-                        // Hide create outfit button
-                        if (createOutfitBtn) {
-                            createOutfitBtn.style.display = 'none';
-                        }
-                        
-                        // Show grid container
-                        if (gridContainer) {
-                            gridContainer.style.display = 'grid';
-                        }
-
-                        loadUserCollections();
                         break;
                 }
             }
@@ -1153,7 +1157,9 @@
                             
                             const img = document.createElement('img');
                             img.src = item.image_url;
-                            img.alt = item.type;
+                            img.alt = '';
+                            img.setAttribute('aria-hidden', 'true');
+                            img.setAttribute('role', 'presentation');
                             
                             itemElement.appendChild(img);
                             clothingGrid.appendChild(itemElement);
@@ -1177,7 +1183,9 @@
                     
                     const img = document.createElement('img');
                     img.src = item.image_url;
-                    img.alt = item.type;
+                    img.alt = '';
+                    img.setAttribute('aria-hidden', 'true');
+                    img.setAttribute('role', 'presentation');
                     
                     itemElement.appendChild(img);
                     clothingGrid.appendChild(itemElement);
@@ -1503,19 +1511,30 @@
                         navItem.classList.add('active');
 
                         // Handle navigation
-                        if (navItem.querySelector('span').textContent === 'Profile') {
+                        const navText = navItem.querySelector('span').textContent;
+                        if (navText === 'Profile') {
                             showProfile();
-                        } else if (navItem.querySelector('span').textContent === 'My Closet') {
+                        } else if (navText === 'My Closet') {
                             // Show main content
-                            document.querySelector('.grid-container').style.display = 'grid';
-                            document.querySelector('.main-nav').style.display = 'flex';
-                            document.querySelector('.sub-nav').style.display = 'flex';
+                            const gridContainer = document.querySelector('.grid-container');
+                            const mainNav = document.querySelector('.main-nav');
+                            const subNav = document.querySelector('.sub-nav');
+                            
+                            if (gridContainer) gridContainer.style.display = 'grid';
+                            if (mainNav) mainNav.style.display = 'flex';
+                            if (subNav) subNav.style.display = 'flex';
                             
                             // Reset main content
                             const main = document.querySelector('main');
                             const profileSection = main.querySelector('.profile');
                             if (profileSection) {
                                 profileSection.remove();
+                            }
+                            
+                            // Reset to Pieces tab
+                            const piecesTab = document.querySelector('.main-nav .nav-item');
+                            if (piecesTab) {
+                                piecesTab.click();
                             }
                             
                             // Load items
@@ -1553,6 +1572,12 @@
             // Add hideKeyboard function
             function hideKeyboard() {
                 document.activeElement.blur();
+            }
+
+            // Update piece count text
+            const pieceCountElement = document.querySelector('.piece-count');
+            if (pieceCountElement) {
+                pieceCountElement.textContent = '10/10 Free pieces';
             }
         </script>
     </body>
