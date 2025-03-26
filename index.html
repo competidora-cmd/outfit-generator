@@ -1956,54 +1956,41 @@
                             autoRemoveBtn.textContent = 'Processing...';
                             autoRemoveBtn.disabled = true;
 
-                            // Create WebSocket connection
-                            const ws = new WebSocket('wss://45.153.189.61:8000/ws/remove-background');
+                            // Create FormData and append the image
+                            const formData = new FormData();
+                            formData.append('image', currentImageData);
+
+                            // Send POST request to remove background
+                            const response = await fetch('http://45.153.189.61:8000/remove-background', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            // Get the processed image blob
+                            const processedImageBlob = await response.blob();
                             
-                            ws.onopen = async () => {
-                                // Convert File to ArrayBuffer and send
-                                const arrayBuffer = await currentImageData.arrayBuffer();
-                                ws.send(arrayBuffer);
-                            };
+                            // Create object URL from the received blob
+                            const objectUrl = URL.createObjectURL(processedImageBlob);
                             
-                            ws.onmessage = async (event) => {
-                                if (event.data instanceof Blob) {
-                                    // Create object URL from the received blob
-                                    const objectUrl = URL.createObjectURL(event.data);
-                                    
-                                    // Update preview and save processed image
-                                    previewImage.onload = function() {
-                                        console.log('Processed image loaded successfully');
-                                    };
-                                    previewImage.src = objectUrl;
-                                    
-                                    // Replace current image with processed one
-                                    currentImageData = new File([event.data], 'processed_image.png', { type: 'image/png' });
-                                    
-                                    // Restore button state
-                                    autoRemoveBtn.textContent = originalText;
-                                    autoRemoveBtn.disabled = false;
-                                    
-                                    // Close WebSocket connection
-                                    ws.close();
-                                } else {
-                                    // Handle error message
-                                    console.error('Server error:', event.data);
-                                    throw new Error(event.data);
-                                }
+                            // Update preview and save processed image
+                            previewImage.onload = function() {
+                                console.log('Processed image loaded successfully');
                             };
+                            previewImage.src = objectUrl;
                             
-                            ws.onerror = (error) => {
-                                console.error('WebSocket error:', error);
-                                throw error;
-                            };
+                            // Replace current image with processed one
+                            currentImageData = new File([processedImageBlob], 'processed_image.png', { type: 'image/png' });
                             
                         } catch (error) {
                             console.error('Error in background removal:', error);
                             alert('Failed to remove background. Please try again later.');
-                            
+                        } finally {
                             // Restore button state
-                            const autoRemoveBtn = document.getElementById('autoRemoveBtn');
-                            autoRemoveBtn.textContent = 'Auto Remove Background';
+                            autoRemoveBtn.textContent = originalText;
                             autoRemoveBtn.disabled = false;
                         }
                     });
