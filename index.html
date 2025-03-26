@@ -912,6 +912,7 @@
                 const subNav = document.querySelector('.sub-nav');
                 const addPieceCard = document.querySelector('.add-piece-card');
                 const createOutfitBtn = document.getElementById('createOutfitBtn');
+                const gridContainer = document.querySelector('.grid-container');
 
                 isEditingMode = section.toLowerCase() === 'fits';
                 
@@ -939,6 +940,11 @@
                             item.classList.add('selectable');
                         });
 
+                        // Show grid container
+                        if (gridContainer) {
+                            gridContainer.style.display = 'grid';
+                        }
+
                         loadUserItems();
                         break;
 
@@ -957,6 +963,11 @@
                             item.classList.remove('selectable');
                         });
 
+                        // Show grid container
+                        if (gridContainer) {
+                            gridContainer.style.display = 'grid';
+                        }
+
                         loadUserItems();
                         break;
 
@@ -970,6 +981,11 @@
                             createOutfitBtn.style.display = 'none';
                         }
                         
+                        // Show grid container
+                        if (gridContainer) {
+                            gridContainer.style.display = 'grid';
+                        }
+
                         loadUserCollections();
                         break;
                 }
@@ -1344,21 +1360,26 @@
                     }
                     
                     // Ensure proper display state
-                    requestAnimationFrame(() => {
-                        if (uploadArea) {
-                            uploadArea.style.display = 'flex';
+                    if (uploadArea) {
+                        uploadArea.style.display = 'flex';
+                    }
+                    if (imagePreview) {
+                        imagePreview.style.display = 'none';
+                        const previewImg = imagePreview.querySelector('img');
+                        if (previewImg) {
+                            previewImg.src = '';
                         }
-                        if (imagePreview) {
-                            imagePreview.style.display = 'none';
-                            const previewImg = imagePreview.querySelector('img');
-                            if (previewImg) {
-                                previewImg.src = '';
-                            }
-                        }
-                    });
+                    }
                     
                     resetForm();
                     initializeUploadHandlers();
+                    
+                    // Add click handler to modal background
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            hideKeyboard();
+                        }
+                    });
                 }
             }
 
@@ -1422,33 +1443,29 @@
                             const imagePreview = document.getElementById('imagePreview');
                             const previewImg = imagePreview.querySelector('img');
                             const uploadArea = document.getElementById('uploadArea');
+                            const uploadItemBtn = document.getElementById('uploadItemBtn');
 
                             // Convert to JPEG with high quality
                             currentImageData = canvas.toDataURL('image/jpeg', 0.9);
 
                             // Show preview immediately
                             if (imagePreview && previewImg && uploadArea) {
-                                // Force display update
-                                requestAnimationFrame(() => {
-                                    uploadArea.style.display = 'none';
-                                    imagePreview.style.display = 'block';
-                                    
-                                    // Set image source after display changes
-                                    previewImg.onload = () => {
-                                        // Enable upload button after image is loaded
-                                        const uploadItemBtn = document.getElementById('uploadItemBtn');
-                                        if (uploadItemBtn) {
-                                            uploadItemBtn.disabled = false;
-                                        }
-                                        checkRequiredFields();
-                                    };
-                                    
-                                    previewImg.src = currentImageData;
-                                });
+                                uploadArea.style.display = 'none';
+                                imagePreview.style.display = 'block';
+                                
+                                // Set image source
+                                previewImg.src = currentImageData;
+                                
+                                // Enable upload button
+                                if (uploadItemBtn) {
+                                    uploadItemBtn.disabled = false;
+                                }
+                                
+                                // Check required fields
+                                checkRequiredFields();
                             }
                         };
 
-                        // Handle image loading errors
                         img.onerror = () => {
                             console.error('Error loading image');
                             alert('Error loading image. Please try again.');
@@ -1507,6 +1524,36 @@
                     });
                 }
             });
+
+            // Add keyboard handling
+            document.addEventListener('DOMContentLoaded', () => {
+                // Handle clicks outside input fields
+                document.addEventListener('click', (e) => {
+                    if (!e.target.matches('input, select, textarea')) {
+                        document.activeElement.blur();
+                    }
+                });
+
+                // Handle Enter key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        document.activeElement.blur();
+                    }
+                });
+
+                // Add blur event to all input fields
+                const inputs = document.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('blur', () => {
+                        // Additional handling if needed
+                    });
+                });
+            });
+
+            // Add hideKeyboard function
+            function hideKeyboard() {
+                document.activeElement.blur();
+            }
         </script>
     </body>
     </html> 
