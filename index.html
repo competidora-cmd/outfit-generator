@@ -811,6 +811,92 @@
                     max-width: 300px;
                 }
             }
+
+            /* New Upload Styles */
+            .upload-container {
+                width: 100%;
+                max-width: 500px;
+                margin: 0 auto 20px;
+                border-radius: 10px;
+                box-shadow: 4px 4px 30px rgba(0,0,0,0.1);
+                background-color: rgba(0, 110, 255, 0.041);
+                overflow: hidden;
+            }
+
+            .upload-header {
+                display: block;
+                cursor: pointer;
+            }
+
+            .upload-area {
+                height: 300px;
+                width: 100%;
+                border: 2px dashed #40b6ff;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                border-radius: 10px;
+                background-position: center;
+                background-size: cover;
+                position: relative;
+            }
+
+            #previewImage {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: none;
+                background: transparent;
+            }
+
+            .upload-placeholder {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 10px;
+                color: #666;
+            }
+
+            .upload-icon {
+                font-size: 64px;
+                color: #40b6ff;
+            }
+
+            .upload-text {
+                text-align: center;
+                color: #666;
+                font-weight: 500;
+                font-size: 18px;
+            }
+
+            .upload-footer {
+                background-color: rgba(0, 110, 255, 0.075);
+                width: 100%;
+                height: 40px;
+                padding: 8px;
+                border-radius: 0 0 10px 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: #666;
+                font-size: 14px;
+            }
+
+            @media (max-width: 768px) {
+                .upload-area {
+                    height: 250px;
+                }
+                
+                .upload-icon {
+                    font-size: 48px;
+                }
+                
+                .upload-text {
+                    font-size: 16px;
+                }
+            }
         </style>
     </head>
     <body>
@@ -856,16 +942,20 @@
                             <h2>Add New Piece</h2>
                             <span class="close">&times;</span>
                         </div>
-                        <div class="new-upload-container">
-                            <div class="image-container" id="imageContainer">
-                                <img id="previewImage" src="" alt="Preview">
-                                <div class="upload-placeholder" id="uploadPlaceholder">
-                                    <div class="upload-icon">📸</div>
-                                    <div class="upload-text">Click to select image</div>
+                        <div class="upload-container">
+                            <label for="imageUpload" class="upload-header">
+                                <div class="upload-area" id="uploadArea">
+                                    <img id="previewImage" src="" alt="Preview">
+                                    <div class="upload-placeholder" id="uploadPlaceholder">
+                                        <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+                                        <p class="upload-text">Browse File to upload!</p>
+                                    </div>
                                 </div>
+                            </label>
+                            <div class="upload-footer" id="uploadFooter">
+                                <p>Not selected file</p>
                             </div>
                             <input type="file" id="imageUpload" accept="image/*" hidden>
-                            <button class="upload-btn" id="uploadTrigger">Select Image</button>
                         </div>
                         <div class="preview-actions" id="previewActions">
                             <button class="preview-action-btn" id="autoRemoveBtn">Auto Remove Background</button>
@@ -1417,16 +1507,19 @@
                     // Handle drag and drop
                     uploadArea.addEventListener('dragover', (e) => {
                         e.preventDefault();
-                        uploadArea.classList.add('dragover');
+                        uploadArea.style.border = '2px dashed #000';
+                        uploadArea.style.backgroundColor = 'rgba(0, 110, 255, 0.1)';
                     });
 
                     uploadArea.addEventListener('dragleave', () => {
-                        uploadArea.classList.remove('dragover');
+                        uploadArea.style.border = '2px dashed #40b6ff';
+                        uploadArea.style.backgroundColor = 'transparent';
                     });
 
                     uploadArea.addEventListener('drop', (e) => {
                         e.preventDefault();
-                        uploadArea.classList.remove('dragover');
+                        uploadArea.style.border = '2px dashed #40b6ff';
+                        uploadArea.style.backgroundColor = 'transparent';
                         
                         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                             handleImage(e.dataTransfer.files[0]);
@@ -1517,6 +1610,8 @@
 
                 const previewImage = document.getElementById('previewImage');
                 const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+                const uploadFooter = document.getElementById('uploadFooter');
+                const uploadArea = document.getElementById('uploadArea');
                 const uploadItemBtn = document.getElementById('uploadItemBtn');
                 const previewActions = document.getElementById('previewActions');
 
@@ -1526,6 +1621,10 @@
                 // Show preview image and hide placeholder
                 previewImage.style.display = 'block';
                 uploadPlaceholder.style.display = 'none';
+                uploadArea.style.border = 'none';
+                
+                // Update footer with file name
+                uploadFooter.innerHTML = `<p>${file.name}</p>`;
                 
                 // Set image source and enable upload button
                 previewImage.onload = () => {
@@ -1543,6 +1642,8 @@
                 const form = document.querySelector('.form-list');
                 const previewImage = document.getElementById('previewImage');
                 const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+                const uploadFooter = document.getElementById('uploadFooter');
+                const uploadArea = document.getElementById('uploadArea');
                 const uploadItemBtn = document.getElementById('uploadItemBtn');
                 const previewActions = document.getElementById('previewActions');
 
@@ -1556,9 +1657,17 @@
                     previewImage.src = '';
                 }
 
-                // Show placeholder
+                // Show placeholder and reset styles
                 if (uploadPlaceholder) {
                     uploadPlaceholder.style.display = 'flex';
+                }
+
+                if (uploadArea) {
+                    uploadArea.style.border = '2px dashed #40b6ff';
+                }
+
+                if (uploadFooter) {
+                    uploadFooter.innerHTML = '<p>Not selected file</p>';
                 }
 
                 // Disable upload button and hide actions
@@ -1723,17 +1832,11 @@
 
             // Initialize upload handlers
             document.addEventListener('DOMContentLoaded', () => {
-                const uploadTrigger = document.getElementById('uploadTrigger');
+                const uploadArea = document.getElementById('uploadArea');
                 const imageUpload = document.getElementById('imageUpload');
-                const imageContainer = document.getElementById('imageContainer');
 
-                // Handle click on upload button
-                uploadTrigger.addEventListener('click', () => {
-                    imageUpload.click();
-                });
-
-                // Handle click on image container
-                imageContainer.addEventListener('click', () => {
+                // Handle click on upload area
+                uploadArea.addEventListener('click', () => {
                     imageUpload.click();
                 });
 
@@ -1741,6 +1844,28 @@
                 imageUpload.addEventListener('change', (e) => {
                     if (e.target.files && e.target.files[0]) {
                         handleImage(e.target.files[0]);
+                    }
+                });
+
+                // Handle drag and drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.border = '2px dashed #000';
+                    uploadArea.style.backgroundColor = 'rgba(0, 110, 255, 0.1)';
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.style.border = '2px dashed #40b6ff';
+                    uploadArea.style.backgroundColor = 'transparent';
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.style.border = '2px dashed #40b6ff';
+                    uploadArea.style.backgroundColor = 'transparent';
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        handleImage(e.dataTransfer.files[0]);
                     }
                 });
             });
