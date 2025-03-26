@@ -1411,6 +1411,7 @@
                 const header = document.querySelector('header');
                 const uploadArea = document.getElementById('uploadArea');
                 const imagePreview = document.getElementById('imagePreview');
+                const previewActions = document.querySelector('.preview-actions');
 
                 if (modal) {
                     modal.style.display = 'block';
@@ -1428,16 +1429,13 @@
                     }
                     
                     // Ensure proper display state
-                    if (uploadArea) {
-                        uploadArea.style.display = 'flex';
-                    }
+                    if (uploadArea) uploadArea.style.display = 'flex';
                     if (imagePreview) {
                         imagePreview.style.display = 'none';
                         const previewImg = imagePreview.querySelector('img');
-                        if (previewImg) {
-                            previewImg.src = '';
-                        }
+                        if (previewImg) previewImg.src = '';
                     }
+                    if (previewActions) previewActions.style.display = 'none';
                     
                     resetForm();
                     initializeUploadHandlers();
@@ -1482,21 +1480,22 @@
                     const previewImg = imagePreview.querySelector('img');
                     const uploadArea = document.getElementById('uploadArea');
                     const uploadItemBtn = document.getElementById('uploadItemBtn');
+                    const previewActions = document.querySelector('.preview-actions');
 
                     // Create object URL for preview
                     const objectUrl = URL.createObjectURL(file);
                     
-                    // Show preview immediately
-                    if (imagePreview && previewImg && uploadArea) {
-                        uploadArea.style.display = 'none';
-                        imagePreview.style.display = 'block';
-                        
-                        // Set image source and wait for it to load
+                    // Hide upload area and show preview container
+                    if (uploadArea) uploadArea.style.display = 'none';
+                    if (imagePreview) imagePreview.style.display = 'block';
+                    
+                    // Show preview actions
+                    if (previewActions) previewActions.style.display = 'flex';
+                    
+                    // Set image source and enable upload button
+                    if (previewImg) {
                         previewImg.onload = () => {
-                            // Enable upload button once image is loaded
-                            if (uploadItemBtn) {
-                                uploadItemBtn.disabled = false;
-                            }
+                            if (uploadItemBtn) uploadItemBtn.disabled = false;
                         };
                         previewImg.src = objectUrl;
                     }
@@ -1504,11 +1503,6 @@
                     // Store the file for later upload
                     currentImageData = file;
                     
-                    // Show preview actions
-                    const previewActions = document.querySelector('.preview-actions');
-                    if (previewActions) {
-                        previewActions.style.display = 'flex';
-                    }
                 } catch (error) {
                     console.error('Error processing image:', error);
                     alert('Error processing image. Please try again.');
@@ -1519,7 +1513,7 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const bottomNav = document.querySelector('.bottom-nav');
                 if (bottomNav) {
-                    bottomNav.addEventListener('click', (e) => {
+                    bottomNav.addEventListener('click', async (e) => {
                         const navItem = e.target.closest('.nav-item');
                         if (!navItem) return;
 
@@ -1536,32 +1530,38 @@
                         if (navText === 'Profile') {
                             showProfile();
                         } else if (navText === 'My Closet') {
-                            // Show main content
-                            const gridContainer = document.querySelector('.grid-container');
+                            // Reset main content first
+                            const main = document.querySelector('main');
+                            main.innerHTML = `
+                                <div class="grid-container">
+                                    <div class="add-piece-card">
+                                        <div class="add-icon">+</div>
+                                        <div class="add-text">Add Piece</div>
+                                        <div class="piece-count">10/10 Free pieces</div>
+                                        <button class="upgrade-btn">Upgrade ⚡</button>
+                                    </div>
+                                    <div class="clothing-grid" id="clothingGrid">
+                                        <!-- Clothing items will be added here dynamically -->
+                                    </div>
+                                </div>
+                            `;
+
+                            // Show navigation elements
                             const mainNav = document.querySelector('.main-nav');
                             const subNav = document.querySelector('.sub-nav');
-                            const addPieceCard = document.querySelector('.add-piece-card');
-                            
-                            if (gridContainer) gridContainer.style.display = 'grid';
                             if (mainNav) mainNav.style.display = 'flex';
                             if (subNav) subNav.style.display = 'flex';
-                            if (addPieceCard) addPieceCard.style.display = 'block';
-                            
-                            // Reset main content
-                            const main = document.querySelector('main');
-                            const profileSection = main.querySelector('.profile');
-                            if (profileSection) {
-                                profileSection.remove();
+
+                            // Reinitialize click handlers
+                            const addPieceCard = document.querySelector('.add-piece-card');
+                            if (addPieceCard) {
+                                addPieceCard.addEventListener('click', () => {
+                                    showModal();
+                                });
                             }
-                            
-                            // Reset to Pieces tab
-                            const piecesTab = document.querySelector('.main-nav .nav-item');
-                            if (piecesTab) {
-                                piecesTab.click();
-                            }
-                            
+
                             // Load items
-                            loadUserItems();
+                            await loadUserItems();
                         }
                     });
                 }
