@@ -426,20 +426,14 @@
                 display: none;
                 position: relative;
                 background-color: #f5f5f5;
-                -webkit-transform: translateZ(0);
-                transform: translateZ(0);
             }
 
             .image-preview img {
                 width: 100%;
                 height: 100%;
                 object-fit: contain;
-                -webkit-user-select: none;
-                user-select: none;
                 display: block;
                 background: #f5f5f5;
-                -webkit-transform: translateZ(0);
-                transform: translateZ(0);
             }
 
             .preview-actions {
@@ -968,6 +962,7 @@
             const createOutfitBtn = document.getElementById('createOutfitBtn');
             const addPieceCard = document.querySelector('.add-piece-card');
             const closeBtn = document.querySelector('.close');
+            const removeImageBtn = document.getElementById('removeImageBtn');
             
             let currentImageData = null;
             let isEditingMode = false;
@@ -1328,15 +1323,8 @@
             function initializeUploadHandlers() {
                 const uploadArea = document.getElementById('uploadArea');
                 const imageUpload = document.getElementById('imageUpload');
-                const imagePreview = document.getElementById('imagePreview');
 
                 if (uploadArea && imageUpload) {
-                    // Show upload area and hide preview initially
-                    uploadArea.style.display = 'flex';
-                    if (imagePreview) {
-                        imagePreview.style.display = 'none';
-                    }
-
                     // Handle click on upload area
                     uploadArea.addEventListener('click', () => {
                         imageUpload.click();
@@ -1367,12 +1355,6 @@
                             handleImage(e.dataTransfer.files[0]);
                         }
                     });
-                }
-
-                // Reset upload button state
-                const uploadItemBtn = document.getElementById('uploadItemBtn');
-                if (uploadItemBtn) {
-                    uploadItemBtn.disabled = true;
                 }
             }
 
@@ -1469,44 +1451,32 @@
             }
 
             // Update handleImage function
-            async function handleImage(file) {
+            function handleImage(file) {
                 if (!file || !file.type.startsWith('image/')) {
                     alert('Please upload an image file');
                     return;
                 }
 
-                try {
-                    const imagePreview = document.getElementById('imagePreview');
-                    const previewImg = imagePreview.querySelector('img');
-                    const uploadArea = document.getElementById('uploadArea');
-                    const uploadItemBtn = document.getElementById('uploadItemBtn');
-                    const previewActions = document.querySelector('.preview-actions');
+                const imagePreview = document.getElementById('imagePreview');
+                const previewImg = imagePreview.querySelector('img');
+                const uploadArea = document.getElementById('uploadArea');
+                const uploadItemBtn = document.getElementById('uploadItemBtn');
 
-                    // Create object URL for preview
-                    const objectUrl = URL.createObjectURL(file);
-                    
-                    // Hide upload area and show preview container
-                    if (uploadArea) uploadArea.style.display = 'none';
-                    if (imagePreview) imagePreview.style.display = 'block';
-                    
-                    // Show preview actions
-                    if (previewActions) previewActions.style.display = 'flex';
-                    
-                    // Set image source and enable upload button
-                    if (previewImg) {
-                        previewImg.onload = () => {
-                            if (uploadItemBtn) uploadItemBtn.disabled = false;
-                        };
-                        previewImg.src = objectUrl;
-                    }
-
-                    // Store the file for later upload
-                    currentImageData = file;
-                    
-                } catch (error) {
-                    console.error('Error processing image:', error);
-                    alert('Error processing image. Please try again.');
-                }
+                // Create object URL for preview
+                const objectUrl = URL.createObjectURL(file);
+                
+                // Hide upload area and show preview
+                uploadArea.style.display = 'none';
+                imagePreview.style.display = 'block';
+                
+                // Set image source
+                previewImg.src = objectUrl;
+                
+                // Store the file for later upload
+                currentImageData = file;
+                
+                // Enable upload button
+                uploadItemBtn.disabled = false;
             }
 
             // Update bottom navigation handling
@@ -1650,6 +1620,11 @@
                     autoRemoveBtn.textContent = 'Auto Remove Background';
                     autoRemoveBtn.disabled = false;
                 }
+            });
+
+            // Add click handlers for preview actions
+            removeImageBtn.addEventListener('click', () => {
+                resetForm();
             });
         </script>
     </body>
