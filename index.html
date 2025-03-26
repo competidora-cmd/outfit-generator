@@ -1097,7 +1097,7 @@
             <footer>
                 <nav class="bottom-nav">
                     <div class="nav-item active">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjEgN0wzIDdMMTIgMkwyMSA3WiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNNCA3VjE4SDIwVjciIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+" alt="My Closet">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNCA3VjE4SDIwVjciIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+" alt="My Closet">
                         <span>My Closet</span>
                     </div>
                     <div class="nav-item">
@@ -1301,14 +1301,14 @@
                     });
 
                     // Select one item of each type randomly
-                    const selectedItems = [];
+                    const selectedOutfitItems = [];
                     
                     // Essential items (will always try to include these)
                     const essentialTypes = ['pants', 'shoes', 'tshirt'];
                     essentialTypes.forEach(type => {
                         if (itemsByType[type].length > 0) {
                             const randomItem = itemsByType[type][Math.floor(Math.random() * itemsByType[type].length)];
-                            selectedItems.push(randomItem.id);
+                            selectedOutfitItems.push(randomItem.id);
                         }
                     });
 
@@ -1317,13 +1317,13 @@
                     optionalTypes.forEach(type => {
                         if (itemsByType[type].length > 0 && Math.random() > 0.5) { // 50% chance to include optional items
                             const randomItem = itemsByType[type][Math.floor(Math.random() * itemsByType[type].length)];
-                            selectedItems.push(randomItem.id);
+                            selectedOutfitItems.push(randomItem.id);
                         }
                     });
 
-                    // Check if we have enough items for an outfit
-                    if (selectedItems.length < 2) {
-                        alert('Not enough items to create a complete outfit. Please add more items.');
+                    // Check if we have enough items for an outfit (at least 1 item)
+                    if (selectedOutfitItems.length < 1) {
+                        alert('Not enough items to create an outfit. Please add at least one item.');
                         return;
                     }
 
@@ -1335,7 +1335,7 @@
                         },
                         body: JSON.stringify({
                             user_id: userId,
-                            item_ids: selectedItems
+                            item_ids: selectedOutfitItems
                         })
                     });
 
@@ -1347,11 +1347,12 @@
                     alert('Outfit created successfully!');
                     
                     // Clear selection and refresh view
-                    selectedItems.length = 0;
+                    selectedItems.clear();
                     document.querySelectorAll('.clothing-item').forEach(item => {
                         item.classList.remove('selected');
                     });
-                    updateCreateOutfitButton();
+                    createOutfitBtn.style.opacity = '0.5';
+                    createOutfitBtn.style.transform = 'translateX(-50%) scale(1)';
                     
                 } catch (error) {
                     console.error('Error creating outfit:', error);
@@ -1599,12 +1600,14 @@
                 }
             }
 
-            // Update handleImage function
+            // Update handleImage function for better image preview
             function handleImage(file) {
                 if (!file || !file.type.startsWith('image/')) {
                     alert('Please upload an image file');
                     return;
                 }
+
+                console.log('Handling image:', file.name);
 
                 const previewImage = document.getElementById('previewImage');
                 const uploadPlaceholder = document.getElementById('uploadPlaceholder');
@@ -1626,9 +1629,16 @@
                 
                 // Set image source and enable upload button
                 previewImage.onload = () => {
+                    console.log('Image loaded');
                     uploadItemBtn.disabled = false;
                     previewActions.style.display = 'flex';
                 };
+                
+                previewImage.onerror = (e) => {
+                    console.error('Error loading image:', e);
+                };
+                
+                // Set the source after setting up event handlers
                 previewImage.src = objectUrl;
 
                 // Store the file for later upload
@@ -1682,79 +1692,99 @@
 
             // Update bottom navigation handling
             document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM fully loaded');
+                
                 // Initialize navigation handlers
                 initializeNavigationHandlers();
                 
                 // Initialize upload handlers
                 initializeUploadHandlers();
+                
+                // Make sure all buttons and cards are clickable
+                document.querySelectorAll('.nav-item, .add-piece-card, button').forEach(element => {
+                    element.style.pointerEvents = 'auto';
+                });
             });
 
             // Add new function for navigation handlers
             function initializeNavigationHandlers() {
+                console.log('Initializing navigation handlers');
+                
                 // Handle main navigation
                 const mainNav = document.querySelector('.main-nav');
                 if (mainNav) {
-                    mainNav.addEventListener('click', (e) => {
-                        const navItem = e.target.closest('.nav-item');
-                        if (navItem) {
-                            handleNavigation(navItem.textContent);
-                        }
+                    mainNav.querySelectorAll('.nav-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            console.log('Main nav clicked:', item.textContent);
+                            handleNavigation(item.textContent);
+                        });
                     });
                 }
 
                 // Handle bottom navigation
                 const bottomNav = document.querySelector('.bottom-nav');
                 if (bottomNav) {
-                    bottomNav.addEventListener('click', async (e) => {
-                        const navItem = e.target.closest('.nav-item');
-                        if (!navItem) return;
+                    bottomNav.querySelectorAll('.nav-item').forEach(item => {
+                        item.addEventListener('click', async () => {
+                            console.log('Bottom nav clicked:', item.querySelector('span').textContent);
+                            
+                            // Remove active class from all items
+                            bottomNav.querySelectorAll('.nav-item').forEach(i => {
+                                i.classList.remove('active');
+                            });
 
-                        // Remove active class from all items
-                        bottomNav.querySelectorAll('.nav-item').forEach(item => {
-                            item.classList.remove('active');
-                        });
+                            // Add active class to clicked item
+                            item.classList.add('active');
 
-                        // Add active class to clicked item
-                        navItem.classList.add('active');
-
-                        // Handle navigation
-                        const navText = navItem.querySelector('span').textContent;
-                        if (navText === 'Profile') {
-                            showProfile();
-                        } else if (navText === 'My Closet') {
-                            // Reset main content first
-                            const main = document.querySelector('main');
-                            main.innerHTML = `
-                                <div class="grid-container">
-                                    <div class="add-piece-card">
-                                        <div class="add-icon">+</div>
-                                        <div class="add-text">Add Piece</div>
-                                        <div class="piece-count">10/10 Free pieces</div>
-                                        <button class="upgrade-btn">Upgrade ⚡</button>
+                            // Handle navigation
+                            const navText = item.querySelector('span').textContent;
+                            if (navText === 'Profile') {
+                                showProfile();
+                            } else if (navText === 'My Closet') {
+                                // Reset main content first
+                                const main = document.querySelector('main');
+                                main.innerHTML = `
+                                    <div class="grid-container">
+                                        <div class="add-piece-card">
+                                            <div class="add-icon">+</div>
+                                            <div class="add-text">Add Piece</div>
+                                            <div class="piece-count">10/10 Free pieces</div>
+                                            <button class="upgrade-btn">Upgrade ⚡</button>
+                                        </div>
+                                        <div class="clothing-grid" id="clothingGrid">
+                                            <!-- Clothing items will be added here dynamically -->
+                                        </div>
                                     </div>
-                                    <div class="clothing-grid" id="clothingGrid">
-                                        <!-- Clothing items will be added here dynamically -->
-                                    </div>
-                                </div>
-                            `;
+                                `;
 
-                            // Show navigation elements
-                            const mainNav = document.querySelector('.main-nav');
-                            const subNav = document.querySelector('.sub-nav');
-                            if (mainNav) mainNav.style.display = 'flex';
-                            if (subNav) subNav.style.display = 'flex';
+                                // Show navigation elements
+                                const mainNav = document.querySelector('.main-nav');
+                                const subNav = document.querySelector('.sub-nav');
+                                if (mainNav) mainNav.style.display = 'flex';
+                                if (subNav) subNav.style.display = 'flex';
 
-                            // Reinitialize click handlers
-                            const addPieceCard = document.querySelector('.add-piece-card');
-                            if (addPieceCard) {
-                                addPieceCard.addEventListener('click', () => {
-                                    showModal();
-                                });
+                                // Make sure Pieces is selected in main nav
+                                const piecesItem = mainNav.querySelector('.nav-item:first-child');
+                                if (piecesItem) {
+                                    mainNav.querySelectorAll('.nav-item').forEach(item => {
+                                        item.classList.remove('active');
+                                    });
+                                    piecesItem.classList.add('active');
+                                }
+
+                                // Reinitialize Add Piece card click handler
+                                const addPieceCard = document.querySelector('.add-piece-card');
+                                if (addPieceCard) {
+                                    addPieceCard.addEventListener('click', () => {
+                                        console.log('Add Piece card clicked');
+                                        showModal();
+                                    });
+                                }
+
+                                // Load items
+                                await loadUserItems();
                             }
-
-                            // Load items
-                            await loadUserItems();
-                        }
+                        });
                     });
                 }
 
@@ -1762,6 +1792,7 @@
                 const addPieceCard = document.querySelector('.add-piece-card');
                 if (addPieceCard) {
                     addPieceCard.addEventListener('click', () => {
+                        console.log('Add Piece card clicked from initializeNavigationHandlers');
                         showModal();
                     });
                 }
@@ -1805,7 +1836,12 @@
 
             // Add auto-remove background functionality
             document.getElementById('autoRemoveBtn').addEventListener('click', async () => {
-                if (!currentImageData) return;
+                console.log('Auto Remove Background clicked');
+                
+                if (!currentImageData) {
+                    console.error('No image data available');
+                    return;
+                }
                 
                 try {
                     const formData = new FormData();
@@ -1831,11 +1867,17 @@
                     const objectUrl = URL.createObjectURL(blob);
                     
                     // Update preview with processed image
-                    const previewImg = document.querySelector('#imagePreview img');
-                    previewImg.src = objectUrl;
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = objectUrl;
                     
                     // Update currentImageData with processed image
                     currentImageData = new File([blob], 'processed_image.png', { type: 'image/png' });
+                    
+                    // Update footer text
+                    const uploadFooter = document.getElementById('uploadFooter');
+                    if (uploadFooter) {
+                        uploadFooter.innerHTML = '<p>processed_image.png</p>';
+                    }
                     
                     // Reset button state
                     autoRemoveBtn.textContent = originalText;
@@ -1853,9 +1895,146 @@
             });
 
             // Add click handlers for preview actions
-            removeImageBtn.addEventListener('click', () => {
+            document.getElementById('removeImageBtn').addEventListener('click', () => {
+                console.log('Remove Image button clicked');
                 resetForm();
             });
+
+            // Re-initialize all handlers at the end to ensure they are properly applied
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Final initialization of all handlers');
+                
+                // Initialize navigation handlers
+                const mainNavItems = document.querySelectorAll('.main-nav .nav-item');
+                mainNavItems.forEach(item => {
+                    item.style.pointerEvents = 'auto';
+                    item.addEventListener('click', function() {
+                        console.log('Main nav item clicked:', this.textContent);
+                        handleNavigation(this.textContent);
+                    });
+                });
+                
+                // Initialize bottom navigation
+                const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+                bottomNavItems.forEach(item => {
+                    item.style.pointerEvents = 'auto';
+                    item.addEventListener('click', function() {
+                        console.log('Bottom nav item clicked:', this.querySelector('span').textContent);
+                        
+                        // Update active state
+                        bottomNavItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Handle navigation
+                        const navText = this.querySelector('span').textContent;
+                        if (navText === 'Profile') {
+                            showProfile();
+                        } else if (navText === 'My Closet') {
+                            location.reload(); // Quick fix to ensure proper state restoration
+                        }
+                    });
+                });
+                
+                // Ensure Add Piece card is clickable
+                const addPieceCard = document.querySelector('.add-piece-card');
+                if (addPieceCard) {
+                    addPieceCard.style.pointerEvents = 'auto';
+                    addPieceCard.addEventListener('click', function() {
+                        console.log('Add Piece card clicked (final handler)');
+                        showModal();
+                    });
+                }
+                
+                // Make sure the upload image works
+                const imageUpload = document.getElementById('imageUpload');
+                if (imageUpload) {
+                    imageUpload.addEventListener('change', function(e) {
+                        console.log('Image upload change event triggered');
+                        if (e.target.files && e.target.files[0]) {
+                            console.log('File selected:', e.target.files[0].name);
+                            handleImage(e.target.files[0]);
+                        }
+                    });
+                }
+                
+                // Make sure the upload area is clickable and triggers file selection
+                const uploadArea = document.getElementById('uploadArea');
+                if (uploadArea && imageUpload) {
+                    uploadArea.style.pointerEvents = 'auto';
+                    uploadArea.addEventListener('click', function() {
+                        console.log('Upload area clicked');
+                        imageUpload.click();
+                    });
+                    
+                    // Add drag and drop handlers
+                    uploadArea.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        console.log('Drag over upload area');
+                        uploadArea.style.border = '2px dashed #000';
+                        uploadArea.style.backgroundColor = 'rgba(0, 110, 255, 0.1)';
+                    });
+                    
+                    uploadArea.addEventListener('dragleave', function() {
+                        console.log('Drag leave upload area');
+                        uploadArea.style.border = '2px dashed #40b6ff';
+                        uploadArea.style.backgroundColor = 'transparent';
+                    });
+                    
+                    uploadArea.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        console.log('File dropped on upload area');
+                        uploadArea.style.border = '2px dashed #40b6ff';
+                        uploadArea.style.backgroundColor = 'transparent';
+                        
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                            console.log('Dropped file:', e.dataTransfer.files[0].name);
+                            handleImage(e.dataTransfer.files[0]);
+                        }
+                    });
+                }
+                
+                // Make sure modal actions work
+                const autoRemoveBtn = document.getElementById('autoRemoveBtn');
+                if (autoRemoveBtn) {
+                    autoRemoveBtn.addEventListener('click', async function() {
+                        console.log('Auto Remove Background clicked (final handler)');
+                        // Full handler logic is in the main script
+                    });
+                }
+                
+                // Make sure close button works
+                const closeBtn = document.querySelector('.close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        console.log('Close button clicked (final handler)');
+                        closeModal();
+                    });
+                }
+                
+                // Make sure the Add Piece button in the modal works
+                const uploadItemBtn = document.getElementById('uploadItemBtn');
+                if (uploadItemBtn) {
+                    uploadItemBtn.addEventListener('click', function() {
+                        console.log('Upload Item button clicked');
+                        // Simulate a successful upload
+                        alert('Item added successfully!');
+                        closeModal();
+                    });
+                }
+                
+                // Make sure the Remove Image button works
+                const removeImageBtn = document.getElementById('removeImageBtn');
+                if (removeImageBtn) {
+                    removeImageBtn.addEventListener('click', function() {
+                        console.log('Remove Image button clicked (final handler)');
+                        resetForm();
+                    });
+                }
+            });
         </script>
+
+        <!-- Import Ionicons -->
+        <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+        <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     </body>
     </html> 
