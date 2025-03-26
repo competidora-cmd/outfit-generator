@@ -1466,10 +1466,10 @@
                 });
 
                 console.log('Section:', section.toLowerCase());
-                
+
                 // Handle different sections
                 if (section.toLowerCase() === 'fits' || section.toLowerCase() === 'collections') {
-                    // Hide sub-navigation and add piece card
+                        // Hide sub-navigation and add piece card
                     if (subNav) {
                         console.log('Hiding sub-nav');
                         subNav.style.display = 'none';
@@ -1478,27 +1478,27 @@
                         console.log('Hiding add piece card');
                         addPieceCard.style.display = 'none';
                     }
-                    
-                    // Show create outfit button only for fits
-                    if (createOutfitBtn) {
-                        createOutfitBtn.style.display = section.toLowerCase() === 'fits' ? 'block' : 'none';
-                        if (section.toLowerCase() === 'fits') {
-                            createOutfitBtn.style.opacity = '0.5';
+                        
+                        // Show create outfit button only for fits
+                        if (createOutfitBtn) {
+                            createOutfitBtn.style.display = section.toLowerCase() === 'fits' ? 'block' : 'none';
+                            if (section.toLowerCase() === 'fits') {
+                                createOutfitBtn.style.opacity = '0.5';
+                            }
                         }
-                    }
-                    
-                    // Enable selection mode for fits only
-                    document.querySelectorAll('.clothing-item').forEach(item => {
-                        item.classList.toggle('selectable', section.toLowerCase() === 'fits');
-                    });
+                        
+                        // Enable selection mode for fits only
+                        document.querySelectorAll('.clothing-item').forEach(item => {
+                            item.classList.toggle('selectable', section.toLowerCase() === 'fits');
+                        });
 
-                    // Show grid container
-                    if (gridContainer) {
-                        gridContainer.style.display = 'grid';
-                    }
+                        // Show grid container
+                        if (gridContainer) {
+                            gridContainer.style.display = 'grid';
+                        }
 
-                    // Load appropriate content
-                    section.toLowerCase() === 'fits' ? loadUserItems() : loadUserCollections();
+                        // Load appropriate content
+                        section.toLowerCase() === 'fits' ? loadUserItems() : loadUserCollections();
                 } 
                 else if (section.toLowerCase() === 'pieces') {
                     console.log('Switching to Pieces section');
@@ -1684,10 +1684,10 @@
                 selectedItems.clear();
                 
                 // Enable selection mode for items
-                document.querySelectorAll('.clothing-item').forEach(item => {
+                    document.querySelectorAll('.clothing-item').forEach(item => {
                     item.classList.add('selectable');
-                    item.classList.remove('selected');
-                });
+                        item.classList.remove('selected');
+                    });
                 
                 // Load items
                 loadUserItems();
@@ -1724,15 +1724,15 @@
                             <h1 class="first-name">${userProfile.firstName || 'User'}</h1>
                             <h1 class="second-name">@${userProfile.username || 'username'}</h1>
                         </div>
-                        <div class="profile-stats">
-                            <div class="stat-item">
+                            <div class="profile-stats">
+                                <div class="stat-item">
                                 <div class="stat-value">${userProfile.itemsCount || 10}</div>
-                                <div class="stat-label">Items</div>
-                            </div>
-                            <div class="stat-item">
+                                    <div class="stat-label">Items</div>
+                                </div>
+                                <div class="stat-item">
                                 <div class="stat-value">${userProfile.outfitsCount || 5}</div>
-                                <div class="stat-label">Outfits</div>
-                            </div>
+                                    <div class="stat-label">Outfits</div>
+                                </div>
                             <div class="stat-item">
                                 <div class="stat-value">0</div>
                                 <div class="stat-label">Collections</div>
@@ -1845,7 +1845,7 @@
                         
                         if (section === 'Fits') {
                             handleFits();
-                        } else {
+                    } else {
                             handleNavigation(section);
                         }
                     });
@@ -1890,44 +1890,44 @@
                 if (!uploadArea || !imageUpload) {
                     console.error('Upload elements not found');
                     return;
-                }
-                
-                // Handle click on upload area
+                    }
+
+                    // Handle click on upload area
                 uploadArea.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Upload area clicked');
-                    imageUpload.click();
-                });
-                
-                // Handle file selection
+                        imageUpload.click();
+                    });
+
+                    // Handle file selection
                 imageUpload.addEventListener('change', function(e) {
                     console.log('Image upload changed');
-                    if (e.target.files && e.target.files[0]) {
-                        handleImage(e.target.files[0]);
-                    }
-                });
-                
-                // Handle drag and drop
+                        if (e.target.files && e.target.files[0]) {
+                            handleImage(e.target.files[0]);
+                        }
+                    });
+
+                    // Handle drag and drop
                 uploadArea.addEventListener('dragover', function(e) {
-                    e.preventDefault();
+                        e.preventDefault();
                     this.style.border = '2px dashed #000';
                     this.style.backgroundColor = 'rgba(0, 110, 255, 0.1)';
-                });
-                
+                    });
+
                 uploadArea.addEventListener('dragleave', function() {
                     this.style.border = '2px dashed #40b6ff';
                     this.style.backgroundColor = 'transparent';
-                });
-                
+                    });
+
                 uploadArea.addEventListener('drop', function(e) {
-                    e.preventDefault();
+                        e.preventDefault();
                     this.style.border = '2px dashed #40b6ff';
                     this.style.backgroundColor = 'transparent';
-                    
-                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        handleImage(e.dataTransfer.files[0]);
-                    }
-                });
+                        
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                            handleImage(e.dataTransfer.files[0]);
+                        }
+                    });
                 
                 // Initialize remove image button
                 if (removeImageBtn) {
@@ -1967,10 +1967,17 @@
                                 const controller = new AbortController();
                                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 секунд таймаут
                                 
-                                const response = await fetch('45.153.189.61:8000', {
+                                const response = await fetch('http://45.153.189.61:2042/remove-background', {
                                     method: 'POST',
                                     body: formData,
-                                    signal: controller.signal
+                                    signal: controller.signal,
+                                    headers: {
+                                        'Accept': 'image/*',
+                                        'Access-Control-Allow-Origin': '*'
+                                    },
+                                    mode: 'cors',
+                                    cache: 'no-cache',
+                                    redirect: 'follow'
                                 });
                                 
                                 clearTimeout(timeoutId);
@@ -2130,7 +2137,7 @@
                     console.warn('Image editor elements not found');
                     return;
                 }
-                
+
                 // Переменные для рисования
                 let isDrawing = false;
                 let lastX = 0;
@@ -2301,12 +2308,12 @@
                     // Setup onload handler first
                     previewImage.onload = function() {
                         console.log('Preview image loaded');
-                        
-                        // Enable upload button
-                        if (uploadItemBtn) {
-                            uploadItemBtn.disabled = false;
-                        }
-                        
+                                
+                                // Enable upload button
+                                if (uploadItemBtn) {
+                                    uploadItemBtn.disabled = false;
+                                }
+                                
                         // Show preview actions
                         if (previewActions) {
                             previewActions.style.display = 'flex';
@@ -2397,8 +2404,8 @@
             
             // Функция для обновления счетчика предметов
             function updatePieceCounter() {
-                const pieceCountElement = document.querySelector('.piece-count');
-                if (pieceCountElement) {
+            const pieceCountElement = document.querySelector('.piece-count');
+            if (pieceCountElement) {
                     const usedSlots = userClothingItems.length;
                     const totalSlots = 10; // Бесплатное ограничение
                     pieceCountElement.textContent = `${usedSlots}/${totalSlots} Free pieces`;
