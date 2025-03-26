@@ -1664,12 +1664,267 @@
                 // Initialize auto remove background button
                 const autoRemoveBtn = document.getElementById('autoRemoveBtn');
                 if (autoRemoveBtn) {
-                    autoRemoveBtn.addEventListener('click', function() {
-                        console.log('Auto remove background clicked');
-                        alert('Background removal functionality would be implemented here');
+                    autoRemoveBtn.addEventListener('click', async () => {
+                        console.log('Auto Remove Background clicked');
+                        
+                        if (!currentImageData) {
+                            console.error('No image data available');
+                            alert('Please upload an image first');
+                            return;
+                        }
+                        
+                        try {
+                            // Показываем индикатор загрузки
+                            const originalText = autoRemoveBtn.textContent;
+                            autoRemoveBtn.textContent = 'Processing...';
+                            autoRemoveBtn.disabled = true;
+                            
+                            // Создаем FormData для отправки изображения
+                            const formData = new FormData();
+                            formData.append('file', currentImageData);
+                            
+                            // Отправляем запрос на локальный сервер
+                            const response = await fetch('http://localhost:8000/remove-background', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            
+                            if (!response.ok) {
+                                throw new Error(`Failed to remove background: ${response.status} ${response.statusText}`);
+                            }
+                            
+                            // Получаем обработанное изображение
+                            const blob = await response.blob();
+                            const objectUrl = URL.createObjectURL(blob);
+                            
+                            // Обновляем превью и сохраняем обработанное изображение
+                            const previewImage = document.getElementById('previewImage');
+                            previewImage.onload = function() {
+                                console.log('Processed image loaded successfully');
+                            };
+                            previewImage.src = objectUrl;
+                            
+                            // Заменяем текущее изображение на обработанное
+                            currentImageData = new File([blob], 'processed_image.png', { type: 'image/png' });
+                            
+                            // Обновляем текст футера
+                            const uploadFooter = document.getElementById('uploadFooter');
+                            if (uploadFooter) {
+                                uploadFooter.innerHTML = '<p>processed_image.png</p>';
+                            }
+                            
+                            // Восстанавливаем состояние кнопки
+                            autoRemoveBtn.textContent = originalText;
+                            autoRemoveBtn.disabled = false;
+                            
+                            console.log('Background removed successfully');
+                            
+                        } catch (error) {
+                            console.error('Error removing background:', error);
+                            alert('Failed to remove background. Please try again later.');
+                            
+                            // Восстанавливаем состояние кнопки
+                            const autoRemoveBtn = document.getElementById('autoRemoveBtn');
+                            autoRemoveBtn.textContent = 'Auto Remove Background';
+                            autoRemoveBtn.disabled = false;
+                        }
                     });
                 }
             }
+
+            // Обработчик для кнопки редактирования изображения
+            document.getElementById('editImageBtn').addEventListener('click', function() {
+                console.log('Edit Image button clicked');
+                
+                if (!currentImageData) {
+                    console.error('No image data available');
+                    alert('Please upload an image first');
+                    return;
+                }
+                
+                // Показываем редактор изображений
+                const imageEditorElement = document.getElementById('imageEditor');
+                if (imageEditorElement) {
+                    // Загружаем изображение в редактор
+                    const canvasElement = document.getElementById('editorCanvas');
+                    if (canvasElement) {
+                        const ctx = canvasElement.getContext('2d');
+                        const img = new Image();
+                        img.onload = function() {
+                            // Настраиваем размер канваса
+                            canvasElement.width = img.width;
+                            canvasElement.height = img.height;
+                            
+                            // Отрисовываем изображение
+                            ctx.drawImage(img, 0, 0);
+                            
+                            // Показываем редактор
+                            imageEditorElement.style.display = 'block';
+                        };
+                        img.src = URL.createObjectURL(currentImageData);
+                    }
+                } else {
+                    alert('Image editor is not available');
+                }
+            });
+
+            // Инициализация редактора изображений
+            const setupImageEditor = function() {
+                // Получаем элементы редактора
+                const editorEl = document.getElementById('imageEditor');
+                const canvasEl = document.getElementById('editorCanvas');
+                const eraserToolEl = document.getElementById('eraserTool');
+                const magicWandToolEl = document.getElementById('magicWandTool');
+                const undoBtnEl = document.getElementById('undoBtn');
+                const saveEditBtnEl = document.getElementById('saveEdit');
+                const cancelEditBtnEl = document.getElementById('cancelEdit');
+                const brushSizeEl = document.getElementById('brushSize');
+                
+                if (!canvasEl || !eraserToolEl) {
+                    console.warn('Image editor elements not found');
+                    return;
+                }
+                
+                // Переменные для рисования
+                let isDrawing = false;
+                let lastX = 0;
+                let lastY = 0;
+                let eraserActive = false;
+                let currentBrushSize = 20;
+                let canvasHistory = [];
+                
+                // Контекст канваса
+                const ctx = canvasEl.getContext('2d');
+                
+                // Сохраняем историю для отмены
+                function saveState() {
+                    canvasHistory.push(canvasEl.toDataURL());
+                    if (canvasHistory.length > 10) { // Ограничиваем историю
+                        canvasHistory.shift();
+                    }
+                }
+                
+                // Отмена последнего действия
+                undoBtnEl.addEventListener('click', function() {
+                    if (canvasHistory.length > 0) {
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+                            ctx.drawImage(img, 0, 0);
+                        };
+                        img.src = canvasHistory.pop();
+                    }
+                });
+                
+                // Включаем инструмент ластика
+                eraserToolEl.addEventListener('click', function() {
+                    eraserActive = true;
+                    eraserToolEl.classList.add('active');
+                    magicWandToolEl.classList.remove('active');
+                });
+                
+                // Включаем инструмент волшебной палочки
+                magicWandToolEl.addEventListener('click', function() {
+                    eraserActive = false;
+                    magicWandToolEl.classList.add('active');
+                    eraserToolEl.classList.remove('active');
+                    alert('Magic Wand tool: Click on the area you want to remove');
+                });
+                
+                // Размер кисти
+                brushSizeEl.addEventListener('input', function() {
+                    currentBrushSize = this.value;
+                });
+                
+                // Функции рисования ластиком
+                canvasEl.addEventListener('mousedown', function(e) {
+                    isDrawing = true;
+                    saveState(); // Сохраняем состояние перед рисованием
+                    
+                    const rect = canvasEl.getBoundingClientRect();
+                    lastX = e.clientX - rect.left;
+                    lastY = e.clientY - rect.top;
+                });
+                
+                canvasEl.addEventListener('mousemove', function(e) {
+                    if (!isDrawing) return;
+                    
+                    const rect = canvasEl.getBoundingClientRect();
+                    const currentX = e.clientX - rect.left;
+                    const currentY = e.clientY - rect.top;
+                    
+                    if (eraserActive) {
+                        // Рисуем ластиком (прозрачные круги)
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.beginPath();
+                        ctx.arc(currentX, currentY, currentBrushSize/2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    lastX = currentX;
+                    lastY = currentY;
+                });
+                
+                canvasEl.addEventListener('mouseup', function() {
+                    isDrawing = false;
+                });
+                
+                canvasEl.addEventListener('mouseout', function() {
+                    isDrawing = false;
+                });
+                
+                // Магическая палочка (упрощенная версия)
+                canvasEl.addEventListener('click', function(e) {
+                    if (eraserActive) return; // Только для режима волшебной палочки
+                    
+                    const rect = canvasEl.getBoundingClientRect();
+                    const x = Math.floor(e.clientX - rect.left);
+                    const y = Math.floor(e.clientY - rect.top);
+                    
+                    // Здесь должна быть реализация алгоритма Magic Wand
+                    // В простом варианте просто удаляем большую область
+                    saveState();
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalCompositeOperation = 'source-over';
+                });
+                
+                // Кнопка "Сохранить"
+                saveEditBtnEl.addEventListener('click', function() {
+                    // Преобразуем canvas в изображение
+                    canvasEl.toBlob(function(blob) {
+                        // Обновляем превью
+                        const previewImage = document.getElementById('previewImage');
+                        previewImage.src = URL.createObjectURL(blob);
+                        
+                        // Обновляем текущее изображение
+                        currentImageData = new File([blob], 'edited_image.png', { type: 'image/png' });
+                        
+                        // Обновляем текст футера
+                        const uploadFooter = document.getElementById('uploadFooter');
+                        if (uploadFooter) {
+                            uploadFooter.innerHTML = '<p>edited_image.png</p>';
+                        }
+                        
+                        // Закрываем редактор
+                        editorEl.style.display = 'none';
+                    });
+                });
+                
+                // Кнопка "Отмена"
+                cancelEditBtnEl.addEventListener('click', function() {
+                    editorEl.style.display = 'none';
+                });
+                
+                console.log('Image editor initialized');
+            };
+            
+            // Инициализируем редактор при загрузке страницы
+            document.addEventListener('DOMContentLoaded', function() {
+                setupImageEditor();
+            });
 
             // Handle image preview
             function handleImage(file) {
