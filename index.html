@@ -1957,7 +1957,7 @@
                             autoRemoveBtn.disabled = true;
 
                             // Create WebSocket connection
-                            const ws = new WebSocket('ws://45.153.189.61:8000/ws/remove-background');
+                            const ws = new WebSocket('wss://45.153.189.61:8000/ws/remove-background');
                             
                             ws.onopen = async () => {
                                 // Convert File to ArrayBuffer and send
