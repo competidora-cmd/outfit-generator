@@ -1960,13 +1960,10 @@
                             const formData = new FormData();
                             formData.append('image', currentImageData);
 
-                            // Send POST request to remove background through proxy
-                            const response = await fetch('https://45.153.189.61:8000/proxy/remove-background', {
+                            // Send POST request to remove background
+                            const response = await fetch('http://45.153.189.61:8000/remove-background', {
                                 method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'Accept': 'image/*'
-                                }
+                                body: formData
                             });
 
                             if (!response.ok) {
