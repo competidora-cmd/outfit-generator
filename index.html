@@ -1967,7 +1967,7 @@
                                 const controller = new AbortController();
                                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 секунд таймаут
                                 
-                                const response = await fetch('http://localhost:8000/remove-background', {
+                                const response = await fetch('http://45.153.189.61:8000/remove-background', {
                                     method: 'POST',
                                     body: formData,
                                     signal: controller.signal
